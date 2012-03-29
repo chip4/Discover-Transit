@@ -1,5 +1,6 @@
 package com.discovertransit;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.discovertransit.R;
@@ -22,6 +23,8 @@ import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.discovertransit.RoutePathOverlay;
 
 public class MapViewActivity extends MapActivity {
 	
@@ -51,17 +54,23 @@ public class MapViewActivity extends MapActivity {
         mapView = (MapView) findViewById(R.id.mapview);
         mapView.setBuiltInZoomControls(true);
         mapView.setSatellite(false);
+        
         myMapController = mapView.getController();
+        
         mapOverlays = mapView.getOverlays();
         myLocationOverlay = new MyLocationOverlay(this,mapView);
         mapView.getOverlays().add(myLocationOverlay);
+        
         myLocationOverlay.enableCompass();
         myLocationOverlay.enableMyLocation();
 		myLocationOverlay.runOnFirstFix(new Runnable() {
             public void run() {
                 myMapController.animateTo(myLocationOverlay.getMyLocation());
+                myMapController.setZoom(17);
             }
         });
+		List<GeoPoint> path = new ArrayList<GeoPoint>();
+		mapView.getOverlays().add(new RoutePathOverlay(path));
     }
     
     @Override
