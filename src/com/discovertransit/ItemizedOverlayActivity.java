@@ -1,4 +1,4 @@
-package com.example.mapviewdemo;
+package com.discovertransit;
 
 import java.util.ArrayList;
 
@@ -13,12 +13,12 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
 
-public class ItemizedOverlayDemo extends ItemizedOverlay {
+public class ItemizedOverlayActivity extends ItemizedOverlay {
 
 	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
 	private Context mContext;
 	
-	public ItemizedOverlayDemo(Drawable defaultMarker, Context context) {
+	public ItemizedOverlayActivity(Drawable defaultMarker, Context context) {
 		super(boundCenterBottom(defaultMarker));
 		mContext = context;
 	}

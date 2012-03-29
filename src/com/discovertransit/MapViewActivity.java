@@ -1,7 +1,8 @@
-package com.example.mapviewdemo;
+package com.discovertransit;
 
 import java.util.List;
 
+import com.example.mapviewdemo.R;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
@@ -22,14 +23,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MapViewDemoActivity extends MapActivity {
+public class MapViewActivity extends MapActivity {
 	
 	//Initial items
 	LinearLayout linearLayout;
 	MapView mapView;
 	List<Overlay> mapOverlays;
 	Drawable drawable;
-	ItemizedOverlayDemo itemizedOverlay;
+	ItemizedOverlayActivity itemizedOverlay;
 	
 	//Used for location
 	LocationManager myLocationManager;
