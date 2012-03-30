@@ -82,9 +82,14 @@ public class MapViewActivity extends MapActivity {
 		/*path.add(new GeoPoint(33801811,-84436148));
 		path.add(new GeoPoint(33787734,-84412155));
 		path.add(new GeoPoint(33770662,-84396068));*/
-
-		mapView.getOverlays().add(new RoutePathOverlay(path));
 		
+		RoutePathOverlay pathOverlay = new RoutePathOverlay(path);
+		
+		mapView.getOverlays().add(pathOverlay);
+		
+		Route test = Route.getRoute(27);
+		
+		RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
     }
     
     @Override
