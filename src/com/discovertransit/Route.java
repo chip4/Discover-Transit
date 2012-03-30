@@ -8,7 +8,7 @@ import android.util.Pair;
 
 public class Route {
 	private ArrayList<Bus> buses;
-	private ArrayList<Pair<GeoPoint,GeoPoint>> pathCoords;
+	private ArrayList<ArrayList<GeoPoint>> pathCoords;
 	private String name;
 	
 	
@@ -18,7 +18,7 @@ public class Route {
 	public void addBus(Bus bus) {
 		this.buses.add(bus);
 	}
-	public ArrayList<Pair<GeoPoint, GeoPoint>> getPathCoords() {
+	public ArrayList<ArrayList<GeoPoint>> getPathCoords() {
 		return pathCoords;
 	}
 	public void setPathCoords(String routeFile) {
