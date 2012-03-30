@@ -8,19 +8,24 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
+import com.google.android.maps.MapView;
 import com.google.android.maps.OverlayItem;
 
-public class ItemizedOverlayActivity extends ItemizedOverlay {
+import com.readystatesoftware.mapviewballoons.BalloonItemizedOverlay;
+
+
+public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem> {
 
 	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
 	private Context mContext;
 	
-	public ItemizedOverlayActivity(Drawable defaultMarker, Context context) {
-		super(boundCenterBottom(defaultMarker));
-		mContext = context;
+	public ItemizedOverlayActivity(Drawable defaultMarker, MapView mapView) {
+		super(boundCenterBottom(defaultMarker), mapView);
+		mContext = mapView.getContext();
 	}
 
 	@Override
@@ -38,21 +43,9 @@ public class ItemizedOverlayActivity extends ItemizedOverlay {
 		populate();
 	}
 	
-	@Override
-	public boolean onTap(int index){
-		OverlayItem item = mOverlays.get(index);
-		AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
-		String title = item.getTitle();
-		String snippet = item.getSnippet();
-		if(title=="") {
-			title = "No title available";
-		}
-		if(snippet=="") {
-			snippet = "No information available";
-		}
-		dialog.setTitle(title);
-		dialog.setMessage(snippet);
-		dialog.show();
+	protected boolean onBalloonTap(int index, OverlayItem item) {
+		Toast.makeText(mContext, "onBalloonTap for overlay index " + index,
+				Toast.LENGTH_LONG).show();
 		return true;
 	}
 }

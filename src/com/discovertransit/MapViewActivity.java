@@ -70,6 +70,17 @@ public class MapViewActivity extends MapActivity {
                 myMapController.setZoom(17);
             }
         });
+		//List<GeoPoint> path = new ArrayList<GeoPoint>();
+		//mapView.getOverlays().add(new RoutePathOverlay(path));
+		
+		//List<Overlay> mapOverlays = mapView.getOverlays();
+		drawable = this.getResources().getDrawable(R.drawable.marker);
+		itemizedOverlay = new ItemizedOverlayActivity(drawable, mapView);
+		
+		point = new GeoPoint(33753475,-84392002);
+		OverlayItem overlayitem = new OverlayItem(point, "Alabama & Broad St.", "Northbound");
+		itemizedOverlay.addOverlay(overlayitem);
+		mapOverlays.add(itemizedOverlay);
 		ArrayList<ArrayList<GeoPoint>> path = new ArrayList<ArrayList<GeoPoint>>();
 		path.add(new ArrayList(Arrays.asList(new GeoPoint[]{new GeoPoint(33789568,-84422128), new GeoPoint(33789569,-84421421)})));
 		path.add(new ArrayList(Arrays.asList(new GeoPoint[]{new GeoPoint(33775040,-84406598), new GeoPoint(33774584,-84406250)})));
