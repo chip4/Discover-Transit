@@ -96,11 +96,13 @@ public class MapViewActivity extends MapActivity {
 		
 		RoutePathOverlay pathOverlay = new RoutePathOverlay(path);
 		
-		mapView.getOverlays().add(pathOverlay);
+		//mapView.getOverlays().add(pathOverlay);
 		
-		Route test = Route.getRoute(27);
+		Route test = new Route();
+		test.populateRoute(27);
 		
 		RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
+		mapView.getOverlays().add(testRoute);
     }
     
     @Override

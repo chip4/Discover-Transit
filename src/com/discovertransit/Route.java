@@ -8,6 +8,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import android.app.Activity;
+import android.content.res.AssetManager;
+import android.content.res.Resources;
+
 import java.util.ArrayList;
 
 import com.google.android.maps.GeoPoint;
@@ -19,8 +22,6 @@ public class Route extends Activity{
 	private ArrayList<Bus> buses;
 	private ArrayList<ArrayList<GeoPoint>> pathCoords;
 	private String name;
-	
-	InputStream is;
 	
 	public Route(String name,ArrayList<Bus> buses, ArrayList<ArrayList<GeoPoint>> pathCoords) {
 		this.buses = buses;
@@ -40,7 +41,7 @@ public class Route extends Activity{
 	}
 	
 
-	public void generatePathCoords() throws IOException {
+	/*public void generatePathCoords() throws IOException {
 		//parse file, create pairs and add to arraylist
 		try {
 			is = getAssets().open(name+".txt");
@@ -54,7 +55,7 @@ public class Route extends Activity{
 			if(is!=null)
 				is.close();
 		}
-	}
+	}*/
 	
 	public ArrayList<Bus> getBuses() {
 		return buses;
@@ -80,13 +81,23 @@ public class Route extends Activity{
 		this.routeNum = routeNum;
 	}
 	
-	public static Route getRoute(int routeNum){
+	public void populateRoute(int routeNum){
 		Route ret = new Route();
 		ret.setRouteNum(routeNum);
 		ArrayList<ArrayList<GeoPoint>> finalCoords = new ArrayList<ArrayList<GeoPoint>>();
 		try {
-			System.out.println("../routecoords/"+routeNum+".txt");
-			BufferedReader file = new BufferedReader(new FileReader("../routecoords/"+routeNum+".txt"));
+			//System.out.println(getResources().getAssets().getLocales());
+			this.createPackageContext("com.discovertrasit",this.CONTEXT_INCLUDE_CODE);//fileList();
+			Resources r = getResources();
+			AssetManager am = getResources().getAssets();
+	        String assets[] = null;
+			assets = am.list( "" );
+            for(String asset : assets) {
+                System.out.println(asset);
+            }
+			
+			InputStream is = getResources().getAssets().open("routecoords/"+routeNum+".txt");
+			BufferedReader file = new BufferedReader(new InputStreamReader(is));
 			String line;
 			while((line = file.readLine()) != null){
 				String[] splitOnSemi = line.split(";");
@@ -106,9 +117,9 @@ public class Route extends Activity{
 					finalCoords.add(pair);
 				}
 			}
+			this.setPathCoords(finalCoords);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return ret;
 	}
 }

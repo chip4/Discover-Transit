@@ -37,7 +37,7 @@ public class RoutePathOverlay extends Overlay {
  
         public RoutePathOverlay(ArrayList<ArrayList<GeoPoint>> points) {
         		_points=null;
-                pathCoords = points;
+                pathCoords = (ArrayList<ArrayList<GeoPoint>>)points.clone();
                 _pathColor = Color.RED;
                 _drawStartEnd = false;
         }
