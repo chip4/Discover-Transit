@@ -14,12 +14,12 @@ import android.util.Pair;
 
 public class Route extends Activity{
 	private ArrayList<Bus> buses;
-	private ArrayList<Pair<GeoPoint,GeoPoint>> pathCoords;
+	private ArrayList<ArrayList<GeoPoint>> pathCoords;
 	private String name;
 	
 	InputStream is;
 	
-	public Route(String name,ArrayList<Bus> buses, ArrayList<Pair<GeoPoint,GeoPoint>> pathCoords) {
+	public Route(String name,ArrayList<Bus> buses, ArrayList<ArrayList<GeoPoint>> pathCoords) {
 		this.buses = buses;
 		this.pathCoords = pathCoords;
 		this.name = name;
@@ -56,7 +56,7 @@ public class Route extends Activity{
 	public void addBus(Bus bus) {
 		this.buses.add(bus);
 	}
-	public ArrayList<Pair<GeoPoint, GeoPoint>> getPathCoords() {
+	public ArrayList<ArrayList<GeoPoint>> getPathCoords() {
 		return pathCoords;
 	}
 	

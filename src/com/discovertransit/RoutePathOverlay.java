@@ -1,5 +1,6 @@
 package com.discovertransit;
 
+import java.util.ArrayList;
 import java.util.List;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -7,6 +8,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
+import android.util.Pair;
+
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
@@ -19,6 +22,7 @@ public class RoutePathOverlay extends Overlay {
  
         private int _pathColor;
         private final List<GeoPoint> _points;
+    	private ArrayList<ArrayList<GeoPoint>> pathCoords;
         private boolean _drawStartEnd;
  
         public RoutePathOverlay(List<GeoPoint> points) {
@@ -29,6 +33,13 @@ public class RoutePathOverlay extends Overlay {
                 _points = points;
                 _pathColor = pathColor;
                 _drawStartEnd = drawStartEnd;
+        }
+ 
+        public RoutePathOverlay(ArrayList<ArrayList<GeoPoint>> points) {
+        		_points=null;
+                pathCoords = points;
+                _pathColor = Color.RED;
+                _drawStartEnd = false;
         }
  
         private void drawOval(Canvas canvas, Paint paint, Point point) {
@@ -42,21 +53,18 @@ public class RoutePathOverlay extends Overlay {
  
         public boolean draw(Canvas canvas, MapView mapView, boolean shadow, long when) {
                 Projection projection = mapView.getProjection();
-                if (shadow == false && _points != null) {
-                        Point startPoint = null, endPoint = null;
+                //if (shadow == false && _points != null) {
+                	for(ArrayList<GeoPoint> pair : pathCoords){
                         Path path = new Path();
                         //We are creating the path
-                        for (int i = 0; i < _points.size(); i++) {
-                                GeoPoint gPointA = _points.get(i);
+                        for (int i = 0; i < 2; i++) {
+                                GeoPoint gPointA = pair.get(i);
                                 Point pointA = new Point();
-                                projection.toPixels(gPointA, pointA);
+                                pointA = projection.toPixels(gPointA, pointA);
                                 if (i == 0) { //This is the start point
-                                        startPoint = pointA;
                                         path.moveTo(pointA.x, pointA.y);
-                                } else {
-                                        if (i == _points.size() - 1)//This is the end point
-                                                endPoint = pointA;
-                                        path.lineTo(pointA.x, pointA.y);
+                                } else {                                    
+                                	path.lineTo(pointA.x, pointA.y);
                                 }
                         }
  
@@ -66,17 +74,10 @@ public class RoutePathOverlay extends Overlay {
                         paint.setStyle(Paint.Style.STROKE);
                         paint.setStrokeWidth(5);
                         paint.setAlpha(90);
-                        if (getDrawStartEnd()) {
-                                if (startPoint != null) {
-                                        drawOval(canvas, paint, startPoint);
-                                }
-                                if (endPoint != null) {
-                                        drawOval(canvas, paint, endPoint);
-                                }
-                        }
                         if (!path.isEmpty())
                                 canvas.drawPath(path, paint);
-                }
+                	}
+                //}
                 return super.draw(canvas, mapView, shadow, when);
         }
  
