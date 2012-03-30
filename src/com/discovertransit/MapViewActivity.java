@@ -1,8 +1,22 @@
 package com.discovertransit;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.discovertransit.R;
 import com.google.android.maps.GeoPoint;
@@ -21,6 +35,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -34,8 +49,8 @@ public class MapViewActivity extends MapActivity {
 	LinearLayout linearLayout;
 	MapView mapView;
 	List<Overlay> mapOverlays;
-	Drawable drawable;
-	ItemizedOverlayActivity itemizedOverlay;
+	Drawable drawable,drawable2;
+	ItemizedOverlayActivity itemizedOverlay,itemizedOverlay2;
 	
 	//Used for location
 	LocationManager myLocationManager;
@@ -51,6 +66,8 @@ public class MapViewActivity extends MapActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         
         mapView = (MapView) findViewById(R.id.mapview);
         mapView.setBuiltInZoomControls(true);
@@ -67,7 +84,7 @@ public class MapViewActivity extends MapActivity {
 		myLocationOverlay.runOnFirstFix(new Runnable() {
             public void run() {
                 myMapController.animateTo(myLocationOverlay.getMyLocation());
-                myMapController.setZoom(17);
+                myMapController.setZoom(18);
             }
         });
 		//List<GeoPoint> path = new ArrayList<GeoPoint>();
@@ -77,35 +94,147 @@ public class MapViewActivity extends MapActivity {
 		drawable = this.getResources().getDrawable(R.drawable.marker);
 		itemizedOverlay = new ItemizedOverlayActivity(drawable, mapView);
 		
-		point = new GeoPoint(33753475,-84392002);
-		OverlayItem overlayitem = new OverlayItem(point, "Alabama & Broad St.", "Northbound");
-		itemizedOverlay.addOverlay(overlayitem);
-		mapOverlays.add(itemizedOverlay);
+		//point = new GeoPoint(33753475,-84392002);
+		//OverlayItem overlayitem = new OverlayItem(point, "Alabama & Broad St.", "Northbound");
+		//itemizedOverlay.addOverlay(overlayitem);
 		ArrayList<ArrayList<GeoPoint>> path = new ArrayList<ArrayList<GeoPoint>>();
-		path.add(new ArrayList(Arrays.asList(new GeoPoint[]{new GeoPoint(33789568,-84422128), new GeoPoint(33789569,-84421421)})));
-		path.add(new ArrayList(Arrays.asList(new GeoPoint[]{new GeoPoint(33775040,-84406598), new GeoPoint(33774584,-84406250)})));
-		path.add(new ArrayList(Arrays.asList(new GeoPoint[]{new GeoPoint(33820598,-84449465), new GeoPoint(33821546,-84450228)})));
-		path.add(new ArrayList(Arrays.asList(new GeoPoint[]{new GeoPoint(33752400,-84392820), new GeoPoint(33752730,-84393460)})));
 		
-		//path.add(new ArrayList(Arrays.asList(new GeoPoint[]{new GeoPoint(33801811,-84436148), new GeoPoint(33787734,-84412155)})));
-		//path.add(new ArrayList(Arrays.asList(new GeoPoint[]{new GeoPoint(33820598,-84449465), new GeoPoint(33821546,-84450228)})));
-		
-		/*path.add(new GeoPoint(33801811,-84436148));
-		path.add(new GeoPoint(33787734,-84412155));
-		path.add(new GeoPoint(33770662,-84396068));*/
 		
 		RoutePathOverlay pathOverlay = new RoutePathOverlay(path);
 		
-		mapView.getOverlays().add(pathOverlay);
+		//mapView.getOverlays().add(pathOverlay);
 		
-		Route test = Route.getRoute(27);
+		//Route test = Route.getRoute(27);
 		
-		RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
+		//RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
+
+		drawable2 = this.getResources().getDrawable(R.drawable.marker2);
+		itemizedOverlay2 = new ItemizedOverlayActivity(drawable2, mapView);
+		ArrayList<OverlayItem> list = null;
+		try {
+			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/1.json"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(list!=null) {
+			for(int i = 0; i<list.size();i++)
+				itemizedOverlay.addOverlay(list.get(i));
+		}
+		try {
+			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/2.json"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(list!=null) {
+			for(int i = 0; i<list.size();i++)
+				itemizedOverlay2.addOverlay(list.get(i));
+		}
+		mapOverlays.add(itemizedOverlay);
+		mapOverlays.add(itemizedOverlay2);
     }
     
     @Override
     protected boolean isRouteDisplayed() {
     	return false;
+    }
+    
+    private static String convertStreamToString(InputStream is) {
+        /*
+         * To convert the InputStream to String we use the BufferedReader.readLine()
+         * method. We iterate until the BufferedReader return null which means
+         * there's no more data to read. Each line will appended to a StringBuilder
+         * and returned as String.
+         */
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+ 
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return sb.toString();
+    }
+ 
+   
+    public static JSONObject connect(String url)
+    {
+ 
+        HttpClient httpclient = new DefaultHttpClient();
+ 
+        // Prepare a request object
+        HttpGet httpget = new HttpGet(url); 
+ 
+        // Execute the request
+        HttpResponse response;
+        try {
+            response = httpclient.execute(httpget);
+ 
+            // Get hold of the response entity
+            HttpEntity entity = response.getEntity();
+            // If the response does not enclose an entity, there is no need
+            // to worry about connection release
+ 
+            if (entity != null) {
+ 
+                // A Simple JSON Response Read
+                InputStream instream = entity.getContent();
+                String result= convertStreamToString(instream);
+                // A Simple JSONObject Creation
+                JSONObject json=new JSONObject(result);
+ 
+                // Closing the input stream will trigger connection release
+                instream.close();
+                return json;
+            }
+ 
+        } catch (ClientProtocolException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+		return null;
+    }
+    
+    public ArrayList<OverlayItem> processJSONObject(JSONObject json) throws JSONException {
+    	ArrayList<OverlayItem> list = new ArrayList<OverlayItem>();
+    	if(json!=null) {
+    		JSONArray j =(JSONArray)json.get("data");
+    		JSONObject obj;
+    		System.out.println(j.length());
+			obj = (JSONObject)j.get(0);
+			
+			
+    		for(int i = 0; i<j.length();i++)
+    		{
+    			obj = (JSONObject)j.get(i);
+    			
+    			GeoPoint point = new GeoPoint((int)(obj.getDouble("lat")*1E6),(int)(obj.getDouble("lon")*1E6));
+    			OverlayItem overlayitem = new OverlayItem(point, obj.getString("stop"), obj.getString("direction"));
+    			list.add(overlayitem);
+    		}
+    		
+    	}
+		return list;
+    	
     }
    
 }
