@@ -36,6 +36,9 @@ public class Route extends Activity{
 	public Route(String name) {
 		this.name = name;
 	}
+	public Route(){
+	}
+	
 
 	public void generatePathCoords() throws IOException {
 		//parse file, create pairs and add to arraylist
