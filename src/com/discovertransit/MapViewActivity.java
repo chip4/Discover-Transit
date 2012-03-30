@@ -114,7 +114,7 @@ public class MapViewActivity extends MapActivity {
 		itemizedOverlay2 = new ItemizedOverlayActivity(drawable2, mapView);
 		ArrayList<OverlayItem> list = null;
 		try {
-			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/1.json"));
+			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/1/major.json"));
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -125,7 +125,7 @@ public class MapViewActivity extends MapActivity {
 				itemizedOverlay.addOverlay(list.get(i));
 		}
 		try {
-			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/2.json"));
+			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/1/major.json"));
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -135,24 +135,19 @@ public class MapViewActivity extends MapActivity {
 			for(int i = 0; i<list.size();i++)
 				itemizedOverlay2.addOverlay(list.get(i));
 		}
-		mapOverlays.add(itemizedOverlay);
-		mapOverlays.add(itemizedOverlay2);
+		///mapOverlays.add(itemizedOverlay);
 		
-		AssetManager am = context.getAssets();
-		try {
-			InputStream is = am.open("routecoords/1.txt");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		//am.close();
-		/*
-		Route test = new Route();
-		test.populateRoute(27);
 		
+
+		Route test = Route.populateRoute(1,context);
 		RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
 		mapView.getOverlays().add(testRoute);
-		*/
+		mapOverlays.add(itemizedOverlay);
+		/*Route test2 = Route.populateRoute(2,context);
+		RoutePathOverlay test2Route = new RoutePathOverlay(test2.getPathCoords());
+		mapView.getOverlays().add(test2Route);*/
+		
     }
     
     @Override
@@ -239,13 +234,19 @@ public class MapViewActivity extends MapActivity {
     		JSONObject obj;
     		System.out.println(j.length());
 			obj = (JSONObject)j.get(0);
-			String time;
+			JSONArray time;
+			String nextTime;
 			
     		for(int i = 0; i<j.length();i++)
     		{
     			obj = (JSONObject)j.get(i);
     			GeoPoint point = new GeoPoint((int)(obj.getDouble("lat")*1E6),(int)(obj.getDouble("lon")*1E6));
-    			OverlayItem overlayitem = new OverlayItem(point, obj.getString("stop"), obj.getString("direction")+ "--Next bus arrives at: ");
+    			time = obj.getJSONArray("times");
+    			if(time.length()>0)
+    				nextTime = time.get(0).toString();
+    			else
+    				nextTime = "[unknown]";
+    			OverlayItem overlayitem = new OverlayItem(point, obj.getString("stop"), obj.getString("direction")+ "--Next bus arrives at: "+ nextTime);
     			list.add(overlayitem);
     		}
     		

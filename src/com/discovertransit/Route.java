@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
@@ -44,22 +45,6 @@ public class Route extends Activity{
 	public Route(){
 	}
 	
-
-	/*public void generatePathCoords() throws IOException {
-		//parse file, create pairs and add to arraylist
-		try {
-			is = getAssets().open(name+".txt");
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-			String line;
-			//while((line = reader.))
-			
-		} catch(Exception E) {
-			throw new RuntimeException(E);
-		} finally {
-			if(is!=null)
-				is.close();
-		}
-	}*/
 	
 	public ArrayList<Bus> getBuses() {
 		return buses;
@@ -85,22 +70,19 @@ public class Route extends Activity{
 		this.routeNum = routeNum;
 	}
 	
-	public void populateRoute(int routeNum){
+	public static Route populateRoute(int routeNum,Context context){
 		Route ret = new Route();
 		ret.setRouteNum(routeNum);
 		ArrayList<ArrayList<GeoPoint>> finalCoords = new ArrayList<ArrayList<GeoPoint>>();
 		try {
-			//System.out.println(getResources().getAssets().getLocales());
-			//this.createPackageContext("com.discovertrasit",this.CONTEXT_INCLUDE_CODE);//fileList();
-			Resources r = ((MapView) findViewById(R.id.mapview)).getResources();
-			AssetManager am = r.getAssets();
+			AssetManager am = context.getAssets();
 	        String assets[] = null;
 			assets = am.list( "" );
             for(String asset : assets) {
                 System.out.println(asset);
             }
 			
-			InputStream is = getApplicationContext().getResources().getAssets().open("routecoords/"+routeNum+".txt");
+			InputStream is = am.open("routecoords/"+routeNum+".txt");
 			BufferedReader file = new BufferedReader(new InputStreamReader(is));
 			String line;
 			while((line = file.readLine()) != null){
@@ -121,10 +103,12 @@ public class Route extends Activity{
 					finalCoords.add(pair);
 				}
 			}
-			this.setPathCoords(finalCoords);
+			ret.setPathCoords(finalCoords);
+			return ret;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return null;
 	}
 	
 	
