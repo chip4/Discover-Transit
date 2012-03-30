@@ -1,5 +1,5 @@
 package com.discovertransit;
 
-public class Stops {
+public class Stop {
 
 }
