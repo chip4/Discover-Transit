@@ -135,6 +135,14 @@ public class MapViewActivity extends MapActivity {
 		}
 		mapOverlays.add(itemizedOverlay);
 		mapOverlays.add(itemizedOverlay2);
+		
+		/*
+		Route test = new Route();
+		test.populateRoute(27);
+		
+		RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
+		mapView.getOverlays().add(testRoute);
+		*/
     }
     
     @Override
