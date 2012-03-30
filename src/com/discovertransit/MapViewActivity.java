@@ -29,6 +29,7 @@ import com.google.android.maps.OverlayItem;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
@@ -60,6 +61,7 @@ public class MapViewActivity extends MapActivity {
 	GeoPoint point;
 	String best;
     MyLocationOverlay myLocationOverlay;
+    Context context;
 	
     /** Called when the activity is first created. */
     @Override
@@ -72,7 +74,7 @@ public class MapViewActivity extends MapActivity {
         mapView = (MapView) findViewById(R.id.mapview);
         mapView.setBuiltInZoomControls(true);
         mapView.setSatellite(false);
-        
+        context = mapView.getContext();
         myMapController = mapView.getController();
         
         mapOverlays = mapView.getOverlays();
@@ -136,6 +138,14 @@ public class MapViewActivity extends MapActivity {
 		mapOverlays.add(itemizedOverlay);
 		mapOverlays.add(itemizedOverlay2);
 		
+		AssetManager am = context.getAssets();
+		try {
+			InputStream is = am.open("routecoords/1.txt");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//am.close();
 		/*
 		Route test = new Route();
 		test.populateRoute(27);
@@ -229,14 +239,13 @@ public class MapViewActivity extends MapActivity {
     		JSONObject obj;
     		System.out.println(j.length());
 			obj = (JSONObject)j.get(0);
-			
+			String time;
 			
     		for(int i = 0; i<j.length();i++)
     		{
     			obj = (JSONObject)j.get(i);
-    			
     			GeoPoint point = new GeoPoint((int)(obj.getDouble("lat")*1E6),(int)(obj.getDouble("lon")*1E6));
-    			OverlayItem overlayitem = new OverlayItem(point, obj.getString("stop"), obj.getString("direction"));
+    			OverlayItem overlayitem = new OverlayItem(point, obj.getString("stop"), obj.getString("direction")+ "--Next bus arrives at: ");
     			list.add(overlayitem);
     		}
     		
