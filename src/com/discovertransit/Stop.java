@@ -1,4 +1,4 @@
-package com.discovertransit;
+ package com.discovertransit;
 
 public class Stop {
 
