@@ -50,9 +50,10 @@ public class MapViewActivity extends MapActivity {
 	LinearLayout linearLayout;
 	MapView mapView;
 	List<Overlay> mapOverlays;
-	Drawable drawable,drawable2,drawableMarker,drawableMini,drawable5;
+	Drawable drawable,drawable2,drawableMajor,drawableMinor,drawable5;
 	ItemizedOverlayActivity itemizedOverlay,itemizedOverlay2,itemizedOverlay3,itemizedOverlay4;
 	List<ItemizedOverlayActivity> itemizedOverlayList;
+	int index = 0;
 	
 	//Used for location
 	LocationManager myLocationManager;
@@ -90,91 +91,20 @@ public class MapViewActivity extends MapActivity {
                 myMapController.setZoom(18);
             }
         });
-		itemizedOverlay = new ItemizedOverlayActivity(drawableMarker, mapView,1);
-		
-		//point = new GeoPoint(33753475,-84392002);
-		//OverlayItem overlayitem = new OverlayItem(point, "Alabama & Broad St.", "Northbound");
-		//itemizedOverlay.addOverlay(overlayitem);
-		ArrayList<ArrayList<GeoPoint>> path = new ArrayList<ArrayList<GeoPoint>>();
-		
-		
-		
-		//mapView.getOverlays().add(pathOverlay);
-		
-		//Route test = Route.getRoute(27);
-		
-		//RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
+		drawableMinor = this.getResources().getDrawable(R.drawable.mini);
+		drawableMajor = this.getResources().getDrawable(R.drawable.marker);
+		itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
+		addToItemizedOverlayList(itemizedOverlayList,drawableMinor,1,"minor");
+		addToItemizedOverlayList(itemizedOverlayList,drawableMajor,1,"major");
+		addToItemizedOverlayList(itemizedOverlayList,drawableMinor,27,"minor");
+		addToItemizedOverlayList(itemizedOverlayList,drawableMajor,27,"major");
 
-		itemizedOverlay2 = new ItemizedOverlayActivity(drawableMini, mapView,1);
-		ArrayList<OverlayItem> list = null;
-		try {
-			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/1/major.json"));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+				
+		for(int i = 0; i<itemizedOverlayList.size();i++) {
+			itemizedOverlayList.get(i).callPopulate();
+			mapView.getOverlays().add(itemizedOverlayList.get(i));
 		}
 		
-		if(list!=null) {
-			for(int i = 0; i<list.size();i++)
-				itemizedOverlay.addOverlay(list.get(i));
-		}
-		try {
-			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/1.json"));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		if(list!=null) {
-			for(int i = 0; i<list.size();i++)
-				itemizedOverlay2.addOverlay(list.get(i));
-		}
-		
-		drawableMini = this.getResources().getDrawable(R.drawable.mini);
-		itemizedOverlay4 = new ItemizedOverlayActivity(drawableMini, mapView,27);
-
-		drawableMarker = this.getResources().getDrawable(R.drawable.marker);
-		itemizedOverlay3 = new ItemizedOverlayActivity(drawableMarker, mapView,27);
-		try {
-			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/27/major.json"));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		if(list!=null) {
-			for(int i = 0; i<list.size();i++)
-				itemizedOverlay3.addOverlay(list.get(i));
-		}
-		try {
-			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/27.json"));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		if(list!=null) {
-			for(int i = 0; i<list.size();i++)
-				itemizedOverlay4.addOverlay(list.get(i));
-		}
-		
-		try {
-			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/27/major.json"));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		if(list!=null) {
-			for(int i = 0; i<list.size();i++)
-				itemizedOverlay3.addOverlay(list.get(i));
-		}
-		
-		
-		mapView.getOverlays().add(itemizedOverlay2);
-		mapView.getOverlays().add(itemizedOverlay);
-		mapView.getOverlays().add(itemizedOverlay4);
-		mapView.getOverlays().add(itemizedOverlay3);
 		mapView.getOverlays().add(drawBuses(1,this.getResources().getDrawable(R.drawable.marker2),mapView));
 		
     }
@@ -310,6 +240,7 @@ public class MapViewActivity extends MapActivity {
 			for(int i = 0; i<list.size();i++)
 				overlay.addOverlay(list.get(i));
 		}
+		overlay.callPopulate();
     	
     	return overlay;
     }
@@ -334,6 +265,23 @@ public class MapViewActivity extends MapActivity {
     	}
 		return list;
     	
+    }
+    
+    public void addToItemizedOverlayList(List<ItemizedOverlayActivity> itemizedOverlayList,Drawable draw,int routeNum, String detail) {
+		ArrayList<OverlayItem> list = null;
+    	try {
+			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/"+routeNum+"/"+detail+".json"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(list!=null) {
+			itemizedOverlayList.add(new ItemizedOverlayActivity(draw,mapView,routeNum));
+			index++;
+			for(int i = 0; i<list.size();i++)
+				itemizedOverlayList.get(index-1).addOverlay(list.get(i));
+		}
     }
    
 }
