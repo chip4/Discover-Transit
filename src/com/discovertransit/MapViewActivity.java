@@ -50,8 +50,8 @@ public class MapViewActivity extends MapActivity {
 	LinearLayout linearLayout;
 	MapView mapView;
 	List<Overlay> mapOverlays;
-	Drawable drawable,drawable2;
-	ItemizedOverlayActivity itemizedOverlay,itemizedOverlay2;
+	Drawable drawable,drawable2,drawable3,drawable4;
+	ItemizedOverlayActivity itemizedOverlay,itemizedOverlay2,itemizedOverlay3,itemizedOverlay4;
 	
 	//Used for location
 	LocationManager myLocationManager;
@@ -110,7 +110,7 @@ public class MapViewActivity extends MapActivity {
 		
 		//RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
 
-		drawable2 = this.getResources().getDrawable(R.drawable.marker2);
+		drawable2 = this.getResources().getDrawable(R.drawable.mini);
 		itemizedOverlay2 = new ItemizedOverlayActivity(drawable2, mapView);
 		ArrayList<OverlayItem> list = null;
 		try {
@@ -125,7 +125,7 @@ public class MapViewActivity extends MapActivity {
 				itemizedOverlay.addOverlay(list.get(i));
 		}
 		try {
-			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/1/major.json"));
+			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/1.json"));
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -135,24 +135,66 @@ public class MapViewActivity extends MapActivity {
 			for(int i = 0; i<list.size();i++)
 				itemizedOverlay2.addOverlay(list.get(i));
 		}
-		///mapOverlays.add(itemizedOverlay);
+		
+		drawable4 = this.getResources().getDrawable(R.drawable.mini);
+		itemizedOverlay4 = new ItemizedOverlayActivity(drawable4, mapView);
+
+		drawable3 = this.getResources().getDrawable(R.drawable.marker);
+		itemizedOverlay3 = new ItemizedOverlayActivity(drawable3, mapView);
+		try {
+			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/27/major.json"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(list!=null) {
+			for(int i = 0; i<list.size();i++)
+				itemizedOverlay3.addOverlay(list.get(i));
+		}
+		try {
+			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/27.json"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(list!=null) {
+			for(int i = 0; i<list.size();i++)
+				itemizedOverlay4.addOverlay(list.get(i));
+		}
 		
 		//am.close();
 		
 
 		Route test = Route.populateRoute(1,context);
 		RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
+		Route test2 = Route.populateRoute(27,context);
+		RoutePathOverlay testRoute2 = new RoutePathOverlay(test2.getPathCoords());
 		mapView.getOverlays().add(testRoute);
-		mapOverlays.add(itemizedOverlay);
-		/*Route test2 = Route.populateRoute(2,context);
-		RoutePathOverlay test2Route = new RoutePathOverlay(test2.getPathCoords());
-		mapView.getOverlays().add(test2Route);*/
+		mapView.getOverlays().add(testRoute2);
+		mapView.getOverlays().add(itemizedOverlay2);
+		mapView.getOverlays().add(itemizedOverlay);
+		mapView.getOverlays().add(itemizedOverlay4);
+		mapView.getOverlays().add(itemizedOverlay3);
 		
     }
     
     @Override
     protected boolean isRouteDisplayed() {
     	return false;
+    }
+    
+    @Override
+    public void onPause() {
+    	myLocationOverlay.disableMyLocation();
+    	super.onPause();
+    }
+    
+    @Override
+    public void onResume() {
+    	myLocationOverlay.enableMyLocation();
+    	super.onResume();
     }
     
     private static String convertStreamToString(InputStream is) {
