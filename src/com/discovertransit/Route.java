@@ -10,6 +10,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.Point;
+import android.graphics.Rect;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,12 +72,12 @@ public class Route extends Activity{
 		this.routeNum = routeNum;
 	}
 	
-	public static Route populateRoute(int routeNum,Context context){
+	public static Route populateRoute(int routeNum,MapView mapView){
 		Route ret = new Route();
 		ret.setRouteNum(routeNum);
 		ArrayList<ArrayList<GeoPoint>> finalCoords = new ArrayList<ArrayList<GeoPoint>>();
 		try {
-			AssetManager am = context.getAssets();
+			AssetManager am = mapView.getContext().getAssets();
 	        String assets[] = null;
 			assets = am.list( "" );
             for(String asset : assets) {
@@ -95,12 +97,15 @@ public class Route extends Activity{
 					//need {splitOnSemi[0],splitOnSemi[1]}
 					String[] first = splitOnSemi[i].split(" ");
 					String[] second = splitOnSemi[j].split(" ");
-					
-					ArrayList<GeoPoint> pair = new ArrayList<GeoPoint>();
-					pair.add(new GeoPoint((int)(Double.parseDouble(first[1])*1E6),(int)(Double.parseDouble(first[0])*1E6)));
-					pair.add(new GeoPoint((int)(Double.parseDouble(second[1])*1E6),(int)(Double.parseDouble(second[0])*1E6)));
-					
-					finalCoords.add(pair);
+					GeoPoint a =new GeoPoint((int)(Double.parseDouble(first[1])*1E6),(int)(Double.parseDouble(first[0])*1E6));
+					GeoPoint b =new GeoPoint((int)(Double.parseDouble(second[1])*1E6),(int)(Double.parseDouble(second[0])*1E6));
+					if(isCurrentLocationVisible(a,b,mapView)) {
+						ArrayList<GeoPoint> pair = new ArrayList<GeoPoint>();
+						pair.add(a);
+						pair.add(b);
+						
+						finalCoords.add(pair);
+					}
 				}
 			}
 			ret.setPathCoords(finalCoords);
@@ -110,6 +115,21 @@ public class Route extends Activity{
 		}
 		return null;
 	}
+	
+	private static boolean isCurrentLocationVisible(GeoPoint start,GeoPoint end,MapView mapView) {
+        Rect currentMapBoundsRect = new Rect();
+        Point startPosition = new Point();
+        Point endPosition = new Point();
+
+        mapView.getProjection().toPixels(start, startPosition);
+        mapView.getProjection().toPixels(end, endPosition);
+        mapView.getDrawingRect(currentMapBoundsRect);
+
+        //return currentMapBoundsRect.contains(startPosition.x,
+        //        startPosition.y)||currentMapBoundsRect.contains(endPosition.x,endPosition.y);
+        return true;
+
+    }
 	
 	
 	

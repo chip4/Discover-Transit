@@ -22,9 +22,14 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 
 	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
 	private Context mContext;
+	private MapView mapView;
+	private int routeNum;
+	private boolean isRouteDisplayed = false;
 	
-	public ItemizedOverlayActivity(Drawable defaultMarker, MapView mapView) {
+	public ItemizedOverlayActivity(Drawable defaultMarker, MapView mapView,int routeNum) {
 		super(boundCenterBottom(defaultMarker), mapView);
+		this.routeNum = routeNum;
+		this.mapView = mapView;
 		mContext = mapView.getContext();
 	}
 
@@ -40,14 +45,26 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 	
 	public void addOverlay(OverlayItem overlay) {
 		mOverlays.add(overlay);
+	}
+	
+	public void callPopulate() {
 		populate();
 	}
 	
 	protected boolean onBalloonTap(int index, OverlayItem item) {
-		Toast.makeText(mContext, "onBalloonTap for overlay index " + index,
+		Toast.makeText(mContext, "onBalloonTap for Route: " + routeNum,
 				Toast.LENGTH_LONG).show();
+
+		if(!isRouteDisplayed) {
+			Route route = Route.populateRoute(routeNum,mapView);
+			RoutePathOverlay routeOverlay = new RoutePathOverlay(route.getPathCoords());
+			mapView.getOverlays().add(routeOverlay);
+			isRouteDisplayed = true;
+		}
 		return true;
 	}
+	
+	
 }
 
 

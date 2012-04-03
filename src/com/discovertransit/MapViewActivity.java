@@ -50,8 +50,9 @@ public class MapViewActivity extends MapActivity {
 	LinearLayout linearLayout;
 	MapView mapView;
 	List<Overlay> mapOverlays;
-	Drawable drawable,drawable2,drawable3,drawable4,drawable5;
+	Drawable drawable,drawable2,drawableMarker,drawableMini,drawable5;
 	ItemizedOverlayActivity itemizedOverlay,itemizedOverlay2,itemizedOverlay3,itemizedOverlay4;
+	List<ItemizedOverlayActivity> itemizedOverlayList;
 	
 	//Used for location
 	LocationManager myLocationManager;
@@ -89,12 +90,7 @@ public class MapViewActivity extends MapActivity {
                 myMapController.setZoom(18);
             }
         });
-		//List<GeoPoint> path = new ArrayList<GeoPoint>();
-		//mapView.getOverlays().add(new RoutePathOverlay(path));
-		
-		//List<Overlay> mapOverlays = mapView.getOverlays();
-		drawable = this.getResources().getDrawable(R.drawable.marker);
-		itemizedOverlay = new ItemizedOverlayActivity(drawable, mapView);
+		itemizedOverlay = new ItemizedOverlayActivity(drawableMarker, mapView,1);
 		
 		//point = new GeoPoint(33753475,-84392002);
 		//OverlayItem overlayitem = new OverlayItem(point, "Alabama & Broad St.", "Northbound");
@@ -102,7 +98,6 @@ public class MapViewActivity extends MapActivity {
 		ArrayList<ArrayList<GeoPoint>> path = new ArrayList<ArrayList<GeoPoint>>();
 		
 		
-		RoutePathOverlay pathOverlay = new RoutePathOverlay(path);
 		
 		//mapView.getOverlays().add(pathOverlay);
 		
@@ -110,8 +105,7 @@ public class MapViewActivity extends MapActivity {
 		
 		//RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
 
-		drawable2 = this.getResources().getDrawable(R.drawable.mini);
-		itemizedOverlay2 = new ItemizedOverlayActivity(drawable2, mapView);
+		itemizedOverlay2 = new ItemizedOverlayActivity(drawableMini, mapView,1);
 		ArrayList<OverlayItem> list = null;
 		try {
 			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/1/major.json"));
@@ -136,11 +130,11 @@ public class MapViewActivity extends MapActivity {
 				itemizedOverlay2.addOverlay(list.get(i));
 		}
 		
-		drawable4 = this.getResources().getDrawable(R.drawable.mini);
-		itemizedOverlay4 = new ItemizedOverlayActivity(drawable4, mapView);
+		drawableMini = this.getResources().getDrawable(R.drawable.mini);
+		itemizedOverlay4 = new ItemizedOverlayActivity(drawableMini, mapView,27);
 
-		drawable3 = this.getResources().getDrawable(R.drawable.marker);
-		itemizedOverlay3 = new ItemizedOverlayActivity(drawable3, mapView);
+		drawableMarker = this.getResources().getDrawable(R.drawable.marker);
+		itemizedOverlay3 = new ItemizedOverlayActivity(drawableMarker, mapView,27);
 		try {
 			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/27/major.json"));
 		} catch (JSONException e) {
@@ -164,8 +158,6 @@ public class MapViewActivity extends MapActivity {
 				itemizedOverlay4.addOverlay(list.get(i));
 		}
 		
-		drawable5 = this.getResources().getDrawable(R.drawable.marker2);
-		itemizedOverlay3 = new ItemizedOverlayActivity(drawable5, mapView);
 		try {
 			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/27/major.json"));
 		} catch (JSONException e) {
@@ -178,15 +170,7 @@ public class MapViewActivity extends MapActivity {
 				itemizedOverlay3.addOverlay(list.get(i));
 		}
 		
-		//am.close();
 		
-
-		Route test = Route.populateRoute(1,context);
-		RoutePathOverlay testRoute = new RoutePathOverlay(test.getPathCoords());
-		Route test2 = Route.populateRoute(27,context);
-		RoutePathOverlay testRoute2 = new RoutePathOverlay(test2.getPathCoords());
-		mapView.getOverlays().add(testRoute);
-		mapView.getOverlays().add(testRoute2);
 		mapView.getOverlays().add(itemizedOverlay2);
 		mapView.getOverlays().add(itemizedOverlay);
 		mapView.getOverlays().add(itemizedOverlay4);
@@ -313,7 +297,7 @@ public class MapViewActivity extends MapActivity {
     }
     
     public ItemizedOverlayActivity drawBuses(int route, Drawable drawable, MapView mapView) {
-    	ItemizedOverlayActivity overlay = new ItemizedOverlayActivity(drawable, mapView);
+    	ItemizedOverlayActivity overlay = new ItemizedOverlayActivity(drawable, mapView,route);
 		ArrayList<OverlayItem> list = null;
 		try {
 			list = processJSONObjectBusLocation(connect("http://discovertransit.herokuapp.com/bus/"+route+".json"));
