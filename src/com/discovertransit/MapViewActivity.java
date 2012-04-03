@@ -50,7 +50,7 @@ public class MapViewActivity extends MapActivity {
 	LinearLayout linearLayout;
 	MapView mapView;
 	List<Overlay> mapOverlays;
-	Drawable drawable,drawable2,drawable3,drawable4;
+	Drawable drawable,drawable2,drawable3,drawable4,drawable5;
 	ItemizedOverlayActivity itemizedOverlay,itemizedOverlay2,itemizedOverlay3,itemizedOverlay4;
 	
 	//Used for location
@@ -164,6 +164,20 @@ public class MapViewActivity extends MapActivity {
 				itemizedOverlay4.addOverlay(list.get(i));
 		}
 		
+		drawable5 = this.getResources().getDrawable(R.drawable.marker2);
+		itemizedOverlay3 = new ItemizedOverlayActivity(drawable5, mapView);
+		try {
+			list = processJSONObject(connect("http://discovertransit.herokuapp.com/stops/27/major.json"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(list!=null) {
+			for(int i = 0; i<list.size();i++)
+				itemizedOverlay3.addOverlay(list.get(i));
+		}
+		
 		//am.close();
 		
 
@@ -177,6 +191,7 @@ public class MapViewActivity extends MapActivity {
 		mapView.getOverlays().add(itemizedOverlay);
 		mapView.getOverlays().add(itemizedOverlay4);
 		mapView.getOverlays().add(itemizedOverlay3);
+		mapView.getOverlays().add(drawBuses(1,this.getResources().getDrawable(R.drawable.marker2),mapView));
 		
     }
     
@@ -289,6 +304,46 @@ public class MapViewActivity extends MapActivity {
     			else
     				nextTime = "[unknown]";
     			OverlayItem overlayitem = new OverlayItem(point, obj.getString("stop"), obj.getString("direction")+ "--Next bus arrives at: "+ nextTime);
+    			list.add(overlayitem);
+    		}
+    		
+    	}
+		return list;
+    	
+    }
+    
+    public ItemizedOverlayActivity drawBuses(int route, Drawable drawable, MapView mapView) {
+    	ItemizedOverlayActivity overlay = new ItemizedOverlayActivity(drawable, mapView);
+		ArrayList<OverlayItem> list = null;
+		try {
+			list = processJSONObjectBusLocation(connect("http://discovertransit.herokuapp.com/bus/"+route+".json"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(list!=null) {
+			for(int i = 0; i<list.size();i++)
+				overlay.addOverlay(list.get(i));
+		}
+    	
+    	return overlay;
+    }
+    
+    public ArrayList<OverlayItem> processJSONObjectBusLocation(JSONObject json) throws JSONException {
+    	ArrayList<OverlayItem> list = new ArrayList<OverlayItem>();
+    	if(json!=null) {
+    		JSONArray j =(JSONArray)json.get("data");
+    		JSONObject obj;
+			obj = (JSONObject)j.get(0);
+			String nextStop;
+			
+    		for(int i = 0; i<j.length();i++)
+    		{
+    			obj = (JSONObject)j.get(i);
+    			GeoPoint point = new GeoPoint((int)(obj.getDouble("lat")*1E6),(int)(obj.getDouble("lon")*1E6));
+    			nextStop = obj.getString("next_stop");
+    			OverlayItem overlayitem = new OverlayItem(point, "Route: " + obj.getInt("route"), obj.getString("direction")+ "--Next Major stop: "+ nextStop);
     			list.add(overlayitem);
     		}
     		
