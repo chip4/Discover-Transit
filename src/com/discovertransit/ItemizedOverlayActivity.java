@@ -25,6 +25,7 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 	private MapView mapView;
 	private int routeNum;
 	private boolean isRouteDisplayed = false;
+	private RoutePathOverlay routeOverlay;
 	
 	public ItemizedOverlayActivity(Drawable defaultMarker, MapView mapView,int routeNum) {
 		super(boundCenterBottom(defaultMarker), mapView);
@@ -57,9 +58,14 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 
 		if(!isRouteDisplayed) {
 			Route route = Route.populateRoute(routeNum,mapView);
-			RoutePathOverlay routeOverlay = new RoutePathOverlay(route.getPathCoords());
+			routeOverlay = new RoutePathOverlay(route.getPathCoords());
 			mapView.getOverlays().add(routeOverlay);
 			isRouteDisplayed = true;
+		}
+		else {
+			isRouteDisplayed = false;
+			mapView.getOverlays().remove(routeOverlay);
+			
 		}
 		return true;
 	}
