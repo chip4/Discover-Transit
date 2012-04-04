@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
@@ -45,7 +47,8 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 	}
 	
 	public void addOverlay(OverlayItem overlay) {
-		mOverlays.add(overlay);
+		if(isPointVisible(overlay.getPoint(),mapView))
+			mOverlays.add(overlay);
 	}
 	
 	public void callPopulate() {
@@ -69,6 +72,17 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 		}
 		return true;
 	}
+	
+	private static boolean isPointVisible(GeoPoint point,MapView mapView) {
+		if(point==null) return false;
+        Rect currentMapBoundsRect = new Rect();
+        Point startPosition = new Point();
+
+        mapView.getProjection().toPixels(point, startPosition);
+        mapView.getDrawingRect(currentMapBoundsRect);
+        return currentMapBoundsRect.contains(startPosition.x,startPosition.y);
+
+    }
 	
 	
 }

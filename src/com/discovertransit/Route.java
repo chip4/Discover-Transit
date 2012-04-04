@@ -27,8 +27,7 @@ public class Route extends Activity{
 	private ArrayList<Bus> buses;
 	private ArrayList<ArrayList<GeoPoint>> pathCoords;
 	private String name;
-	private static final Map<Integer, String> ROUTE_NAMES = new HashMap<Integer, String>();
-	private static final Map<Integer, GeoPoint[][]> ROUTE_POINTS = new HashMap<Integer, GeoPoint[][]>();
+	public static final Map<Integer, String> ROUTE_NAMES = new HashMap<Integer, String>();
 	
 	public Route(String name,ArrayList<Bus> buses, ArrayList<ArrayList<GeoPoint>> pathCoords) {
 		this.buses = buses;
@@ -212,7 +211,5 @@ public class Route extends Activity{
 		ROUTE_NAMES.put(520, "Memorial Drive BRT Limited");
 		ROUTE_NAMES.put(521, "Memorial Drive BRT Express");
 	}
-	static {
-		
-	}
+
 }
