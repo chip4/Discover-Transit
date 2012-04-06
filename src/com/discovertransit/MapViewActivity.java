@@ -38,6 +38,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.AttributeSet;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.LinearLayout;
@@ -47,9 +48,8 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 	//Initial items
 	LinearLayout linearLayout;
-	MapView mapView;
+	MyMapView mapView;
 	List<Overlay> mapOverlays;
-	Drawable drawable,drawable2,drawableMajor,drawableMinor,drawable5;
 	ItemizedOverlayActivity itemizedOverlay,itemizedOverlay2,itemizedOverlay3,itemizedOverlay4;
 	List<ItemizedOverlayActivity> itemizedOverlayList;
 	int index = 0;
@@ -72,7 +72,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 		StrictMode.setThreadPolicy(policy);
 
-		mapView = (MapView) findViewById(R.id.mapview);
+		mapView = (MyMapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
 		mapView.setSatellite(false);
 		myLocationOverlay = new MyLocationOverlay(this,mapView);
@@ -84,8 +84,14 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		myLocationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
 		bestprovider = myLocationManager.getBestProvider(criteria, false);
+		/*myLocationOverlay.runOnFirstFix(new Runnable() {
+			public void run() {
+				myMapController.animateTo(myLocationOverlay.getMyLocation());
+				myMapController.setZoom(17);
+			}
+		});*/
+		mapView.setOnChangeListener(new MapViewChangeListener());
 		Location location = myLocationManager.getLastKnownLocation(bestprovider);
-		System.out.println(location.toString());
 		myMapController.animateTo(new GeoPoint((int)(location.getLatitude()*1E6),(int)(location.getLongitude()*1E6)));
 		myMapController.setZoom(17);
 		ViewTreeObserver vto = mapView.getViewTreeObserver();
@@ -103,28 +109,76 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 				});
 
 	}
+	
+	private class MapViewChangeListener implements MyMapView.OnChangeListener
+    {
+ 
+        public void onChange(MapView view, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom)
+        {
+            // Check values
+            if ((!newCenter.equals(oldCenter)) && (newZoom != oldZoom))
+            {
+                // Map Zoom and Pan Detected
+                // TODO: Add special action here
+            	/*try {
+					doEverything();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/
+            	System.out.println("HITT111");
+            }
+            else if (!newCenter.equals(oldCenter))
+            {
+                // Map Pan Detected
+                // TODO: Add special action here
+            	/*try {
+					doEverything();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/
+            	System.out.println("HITTT222");
+            }
+            else if (newZoom != oldZoom)
+            {
+                // Map Zoom Detected
+                // TODO: Add special action here
+            	/*try {
+					doEverything();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/
+            	System.out.println("HITTT333");
+            }
+        }
+    }
+	
+	public void refreshMap() {
+		List<ItemizedOverlayActivity> refreshList = new ArrayList<ItemizedOverlayActivity>();
+		mapOverlays = mapView.getOverlays();
+		if(!mapOverlays.isEmpty()) {
+			mapOverlays.clear();
+			mapView.invalidate();
+			
+		}
+	}
 
 	public void doEverything() throws IOException {
-		myLocationOverlay.runOnFirstFix(new Runnable() {
-			public void run() {
-				myMapController.animateTo(myLocationOverlay.getMyLocation());
-				myMapController.setZoom(17);
-			}
-		});
-		drawableMinor = this.getResources().getDrawable(R.drawable.m1);
-		drawableMajor = this.getResources().getDrawable(R.drawable.marker);
+
+		Drawable drawableMinor = this.getResources().getDrawable(R.drawable.m1);
 		itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
-		Iterator<Integer> routeNums = Route.ROUTE_NAMES.keySet().iterator();
+		/*Iterator<Integer> routeNums = Route.ROUTE_NAMES.keySet().iterator();
 		int count = 0;
 		while(routeNums.hasNext()) {
 			int route = routeNums.next();
 			if(count>0) break;
 			if(route!= 520 && route!= 521) {
 				count++;
-				addToItemizedOverlayList(itemizedOverlayList,drawableMinor,route,"minor");
 			}
-		}
-
+		}*/
+		addToItemizedOverlayList(itemizedOverlayList,drawableMinor,1,"minor");
 		for(int i = 0; i<itemizedOverlayList.size();i++) {
 			itemizedOverlayList.get(i).callPopulate();
 			mapView.getOverlays().add(itemizedOverlayList.get(i));
@@ -356,5 +410,4 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		// TODO Auto-generated method stub
 
 	}
-
 }
