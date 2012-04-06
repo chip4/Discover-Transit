@@ -27,8 +27,7 @@ public class Route extends Activity{
 	private ArrayList<Bus> buses;
 	private ArrayList<ArrayList<GeoPoint>> pathCoords;
 	private String name;
-	private static final Map<Integer, String> ROUTE_NAMES = new HashMap<Integer, String>();
-	private static final Map<Integer, GeoPoint[][]> ROUTE_POINTS = new HashMap<Integer, GeoPoint[][]>();
+	public static final Map<Integer, String> ROUTE_NAMES = new HashMap<Integer, String>();
 	
 	public Route(String name,ArrayList<Bus> buses, ArrayList<ArrayList<GeoPoint>> pathCoords) {
 		this.buses = buses;
@@ -99,13 +98,13 @@ public class Route extends Activity{
 					String[] second = splitOnSemi[j].split(" ");
 					GeoPoint a =new GeoPoint((int)(Double.parseDouble(first[1])*1E6),(int)(Double.parseDouble(first[0])*1E6));
 					GeoPoint b =new GeoPoint((int)(Double.parseDouble(second[1])*1E6),(int)(Double.parseDouble(second[0])*1E6));
-					if(isCurrentLocationVisible(a,b,mapView)) {
-						ArrayList<GeoPoint> pair = new ArrayList<GeoPoint>();
-						pair.add(a);
-						pair.add(b);
-						
-						finalCoords.add(pair);
-					}
+					
+					ArrayList<GeoPoint> pair = new ArrayList<GeoPoint>();
+					pair.add(a);
+					pair.add(b);
+					
+					finalCoords.add(pair);
+					
 				}
 			}
 			ret.setPathCoords(finalCoords);
@@ -116,20 +115,6 @@ public class Route extends Activity{
 		return null;
 	}
 	
-	private static boolean isCurrentLocationVisible(GeoPoint start,GeoPoint end,MapView mapView) {
-        Rect currentMapBoundsRect = new Rect();
-        Point startPosition = new Point();
-        Point endPosition = new Point();
-
-        mapView.getProjection().toPixels(start, startPosition);
-        mapView.getProjection().toPixels(end, endPosition);
-        mapView.getDrawingRect(currentMapBoundsRect);
-
-        //return currentMapBoundsRect.contains(startPosition.x,
-        //        startPosition.y)||currentMapBoundsRect.contains(endPosition.x,endPosition.y);
-        return true;
-
-    }
 	
 	
 	
@@ -226,7 +211,5 @@ public class Route extends Activity{
 		ROUTE_NAMES.put(520, "Memorial Drive BRT Limited");
 		ROUTE_NAMES.put(521, "Memorial Drive BRT Express");
 	}
-	static {
-		
-	}
+
 }

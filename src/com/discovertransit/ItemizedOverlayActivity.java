@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
@@ -25,6 +27,7 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 	private MapView mapView;
 	private int routeNum;
 	private boolean isRouteDisplayed = false;
+	private RoutePathOverlay routeOverlay;
 	
 	public ItemizedOverlayActivity(Drawable defaultMarker, MapView mapView,int routeNum) {
 		super(boundCenterBottom(defaultMarker), mapView);
@@ -44,7 +47,8 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 	}
 	
 	public void addOverlay(OverlayItem overlay) {
-		mOverlays.add(overlay);
+		if(isPointVisible(overlay.getPoint(),mapView))
+			mOverlays.add(overlay);
 	}
 	
 	public void callPopulate() {
@@ -57,12 +61,28 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 
 		if(!isRouteDisplayed) {
 			Route route = Route.populateRoute(routeNum,mapView);
-			RoutePathOverlay routeOverlay = new RoutePathOverlay(route.getPathCoords());
+			routeOverlay = new RoutePathOverlay(route.getPathCoords());
 			mapView.getOverlays().add(routeOverlay);
 			isRouteDisplayed = true;
 		}
+		else {
+			isRouteDisplayed = false;
+			mapView.getOverlays().remove(routeOverlay);
+			
+		}
 		return true;
 	}
+	
+	private static boolean isPointVisible(GeoPoint point,MapView mapView) {
+		if(point==null) return false;
+        Rect currentMapBoundsRect = new Rect();
+        Point startPosition = new Point();
+
+        mapView.getProjection().toPixels(point, startPosition);
+        mapView.getDrawingRect(currentMapBoundsRect);
+        return currentMapBoundsRect.contains(startPosition.x,startPosition.y);
+
+    }
 	
 	
 }

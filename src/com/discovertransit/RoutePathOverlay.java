@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Pair;
 
@@ -57,11 +58,14 @@ public class RoutePathOverlay extends Overlay {
                 	for(ArrayList<GeoPoint> pair : pathCoords){
                         Path path = new Path();
                         //We are creating the path
+                        GeoPoint gPointA = null;
+                        GeoPoint gPointB = null;
                         for (int i = 0; i < 2; i++) {
-                                GeoPoint gPointA = pair.get(i);
+                                gPointA = pair.get(i);
                                 Point pointA = new Point();
                                 pointA = projection.toPixels(gPointA, pointA);
                                 if (i == 0) { //This is the start point
+                                		gPointB = pair.get(i);
                                         path.moveTo(pointA.x, pointA.y);
                                 } else {                                    
                                 	path.lineTo(pointA.x, pointA.y);
@@ -74,7 +78,7 @@ public class RoutePathOverlay extends Overlay {
                         paint.setStyle(Paint.Style.STROKE);
                         paint.setStrokeWidth(5);
                         paint.setAlpha(90);
-                        if (!path.isEmpty())
+                        if (!path.isEmpty()&&isCurrentLocationVisible(gPointB,gPointA,mapView))
                                 canvas.drawPath(path, paint);
                 	}
                 //}
@@ -87,5 +91,19 @@ public class RoutePathOverlay extends Overlay {
  
         public void setDrawStartEnd(boolean markStartEnd) {
                 _drawStartEnd = markStartEnd;
+        }
+    	private static boolean isCurrentLocationVisible(GeoPoint start,GeoPoint end,MapView mapView) {
+    		if(start==null||end==null) return false;
+            Rect currentMapBoundsRect = new Rect();
+            Point startPosition = new Point();
+            Point endPosition = new Point();
+
+            mapView.getProjection().toPixels(start, startPosition);
+            mapView.getProjection().toPixels(end, endPosition);
+            mapView.getDrawingRect(currentMapBoundsRect);
+
+            return currentMapBoundsRect.contains(startPosition.x,
+                    startPosition.y)||currentMapBoundsRect.contains(endPosition.x,endPosition.y);
+
         }
 }
