@@ -126,7 +126,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
-            	System.out.println("HITT111");
+            	refreshMap();
             }
             else if (!newCenter.equals(oldCenter))
             {
@@ -138,7 +138,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
-            	System.out.println("HITTT222");
+            	refreshMap();
             }
             else if (newZoom != oldZoom)
             {
@@ -150,7 +150,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
-            	System.out.println("HITTT333");
+            	refreshMap();
             }
         }
     }
