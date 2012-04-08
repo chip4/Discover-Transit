@@ -29,6 +29,7 @@ import com.google.android.maps.OverlayItem;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.database.SQLException;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -36,8 +37,10 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
@@ -63,6 +66,14 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	String bestprovider;
 	MyLocationOverlay myLocationOverlay;
 	Context context;
+	List<Drawable> drawableList;
+
+	//Database
+	DataBaseHelper dbHelper;
+	double minLon;
+	double minLat;
+	double maxLon;
+	double maxLat;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -79,6 +90,19 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		myLocationOverlay.enableMyLocation();
 		mapView.getOverlays().add(myLocationOverlay);
 
+		dbHelper = new DataBaseHelper(mapView.getContext());
+		try {
+			dbHelper.createDataBase();
+		} catch (IOException e) {
+			throw new Error("Unable to create database");
+		}
+
+		try {
+			dbHelper.openDataBase();
+		} catch(SQLException e) {
+			throw e;
+		}
+		mapView.setDbHelper(dbHelper);
 		context = mapView.getContext();
 		myMapController = mapView.getController();
 		myLocationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
@@ -92,99 +116,183 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		});*/
 		mapView.setOnChangeListener(new MapViewChangeListener());
 		Location location = myLocationManager.getLastKnownLocation(bestprovider);
-		myMapController.animateTo(new GeoPoint((int)(location.getLatitude()*1E6),(int)(location.getLongitude()*1E6)));
+		//myMapController.animateTo(new GeoPoint((int)(location.getLatitude()*1E6),(int)(location.getLongitude()*1E6)));
+		GeoPoint p = new GeoPoint(33769212,-84391887);
+		myMapController.setCenter(p);
+		myMapController.animateTo(p);
 		myMapController.setZoom(17);
-		ViewTreeObserver vto = mapView.getViewTreeObserver();
+		mapView.invalidate();
+		/*ViewTreeObserver vto = mapView.getViewTreeObserver();
 		vto.addOnGlobalLayoutListener(
 				new ViewTreeObserver.OnGlobalLayoutListener() {
 					public void onGlobalLayout() {
 						mapView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+						System.out.println(mapView.getMapCenter().toString());
+						System.out.println(p.toString());
 						try {
-							doEverything();
+							doEverything(); 
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
+						//mapView.invalidate();
 					}
-				});
+				});*/
+		Runnable waitForMap = new Runnable() {
+			public void run() {
+				if(mapView.getWidth()==0||mapView.getHeight()== 0) {
+					mapView.postDelayed(this, 100);
+				}
+				else {
+					try {
+						doEverything();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		mapView.postDelayed(waitForMap, 100);
+
 
 	}
-	
+
 	private class MapViewChangeListener implements MyMapView.OnChangeListener
-    {
- 
-        public void onChange(MapView view, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom)
-        {
-            // Check values
-            if ((!newCenter.equals(oldCenter)) && (newZoom != oldZoom))
-            {
-                // Map Zoom and Pan Detected
-                // TODO: Add special action here
-            	/*try {
+	{
+
+		public void onChange(MapView view, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom)
+		{
+			if(!mapView.isRouteDisplayed()) {
+				// Check values
+				if ((!newCenter.equals(oldCenter)) && (newZoom != oldZoom))
+				{
+					// Map Zoom and Pan Detected
+					// TODO: Add special action here
+					/*try {
 					doEverything();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
-            	refreshMap();
-            }
-            else if (!newCenter.equals(oldCenter))
-            {
-                // Map Pan Detected
-                // TODO: Add special action here
-            	/*try {
+					//refreshMap();
+				}
+				else if (!newCenter.equals(oldCenter))
+				{
+					// Map Pan Detected
+					System.out.println("Map Pan Detected");
+					new RefreshMap().execute();
+				}
+				else if (newZoom != oldZoom)
+				{
+					// Map Zoom Detected
+					// TODO: Add special action here
+					/*try {
 					doEverything();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
-            	refreshMap();
-            }
-            else if (newZoom != oldZoom)
-            {
-                // Map Zoom Detected
-                // TODO: Add special action here
-            	/*try {
-					doEverything();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/
-            	refreshMap();
-            }
-        }
-    }
-	
-	public void refreshMap() {
-		List<ItemizedOverlayActivity> refreshList = new ArrayList<ItemizedOverlayActivity>();
-		mapOverlays = mapView.getOverlays();
-		if(!mapOverlays.isEmpty()) {
-			mapOverlays.clear();
-			mapView.invalidate();
-			
+					//refreshMap();
+				}
+			}
 		}
 	}
 
-	public void doEverything() throws IOException {
-
-		Drawable drawableMinor = this.getResources().getDrawable(R.drawable.m1);
-		itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
-		/*Iterator<Integer> routeNums = Route.ROUTE_NAMES.keySet().iterator();
-		int count = 0;
-		while(routeNums.hasNext()) {
-			int route = routeNums.next();
-			if(count>0) break;
-			if(route!= 520 && route!= 521) {
-				count++;
+	class RefreshMap extends AsyncTask<Void,Void,Void> {
+		@Override
+		public void onPreExecute() {
+			minLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
+			maxLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
+			maxLat = (minLat - mapView.getLatitudeSpan()/1E6);
+			minLon = (maxLon + mapView.getLongitudeSpan()/1E6);
+			if (itemizedOverlayList!=null) {
+				for(int i = 0; i<itemizedOverlayList.size();i++) {
+					mapView.getOverlays().remove(itemizedOverlayList.get(i));
+				}
+				//mapView.postInvalidate(); 
+				itemizedOverlayList=null;
 			}
-		}*/
-		addToItemizedOverlayList(itemizedOverlayList,drawableMinor,1,"minor");
+		}
+
+		@Override
+		public Void doInBackground(Void... unused) {
+			SystemClock.sleep(5000);            // simulated work
+			itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
+			try {
+				dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,drawableList,mapView, itemizedOverlayList);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			return(null);
+		}
+
+		@Override
+		public void onPostExecute(Void unused) {
+			if(itemizedOverlayList!=null) {
+				for(int i = 0; i<itemizedOverlayList.size();i++) {
+					itemizedOverlayList.get(i).callPopulate();
+					mapView.getOverlays().add(itemizedOverlayList.get(i));
+				}
+				mapView.postInvalidate();  
+			}
+		}
+	}
+	
+	public static void displayItemizedOverlayList(List<ItemizedOverlayActivity> itemizedOverlayList, MyMapView mapView) {
 		for(int i = 0; i<itemizedOverlayList.size();i++) {
 			itemizedOverlayList.get(i).callPopulate();
 			mapView.getOverlays().add(itemizedOverlayList.get(i));
 		}
+	}
+	public void doEverything() throws IOException {
+		itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
+		double minLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
+		double maxLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
+		double maxLat = (minLat - mapView.getLatitudeSpan()/1E6);
+		double minLon = (maxLon + mapView.getLongitudeSpan()/1E6);
+		drawableList = new ArrayList<Drawable>();
+		drawableList.add(this.getResources().getDrawable(R.drawable.m2));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m1));
+		int size = 0;
+		try {
+			size = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,drawableList,mapView,itemizedOverlayList);
+			//itemizedOverlayList = dbHelper.getStopsNearby(33.797000000000004,-84.382004,33.784086,-84.392302,drawableList,mapView);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-		mapView.getOverlays().add(drawBuses(1,this.getResources().getDrawable(R.drawable.bus),mapView));
+
+		GeoPoint p = mapView.getMapCenter();
+		GeoPoint min = new GeoPoint((int)(minLat*1E6),(int)(minLon*1E6));
+		GeoPoint max = new GeoPoint((int)(maxLat*1E6),(int)(maxLon*1E6));
+		System.out.println(mapView.getMapCenter().toString());
+		System.out.println(p.toString());
+		//debug(itemizedOverlayList);
+		ItemizedOverlayActivity test = new ItemizedOverlayActivity(drawableList.get(0), mapView, 1);
+		test.getmOverlays().add(new OverlayItem(mapView.getMapCenter(),"MapCENTER","MapcCENTER"));
+		test.getmOverlays().add(new OverlayItem(p,"MYCENTER","MYCENTER"));
+		test.getmOverlays().add(new OverlayItem(min,"min","min"));
+		test.getmOverlays().add(new OverlayItem(max,"max","max"));
+		test.callPopulate();
+		mapView.getOverlays().add(test);
+		for(int i = 0; i<size;i++) {
+			itemizedOverlayList.get(i).callPopulate();
+			mapView.getOverlays().add(itemizedOverlayList.get(i));
+		}
+		//mapView.getOverlays().add(drawBuses(1,this.getResources().getDrawable(R.drawable.bus),mapView));
+	}
+
+	private void debug(List<ItemizedOverlayActivity> list) {
+		for(int i = 0; i<list.size();i++) {
+			List<OverlayItem> mOverlays = list.get(i).getmOverlays();
+			System.out.println("mOverlays size: " + mOverlays.size());
+			for(int j = 0; j<mOverlays.size();j++)
+				System.out.println(mOverlays.get(j).getTitle());
+		}
 	}
 
 	@Override
@@ -304,7 +412,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 	}
 
-	public ItemizedOverlayActivity drawBuses(int route, Drawable drawable, MapView mapView) {
+	public static ItemizedOverlayActivity drawBuses(int route, Drawable drawable, MyMapView mapView) {
 		ItemizedOverlayActivity overlay = new ItemizedOverlayActivity(drawable, mapView,route);
 		ArrayList<OverlayItem> list = null;
 		try {
@@ -324,7 +432,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		return overlay;
 	}
 
-	public ArrayList<OverlayItem> processJSONObjectBusLocation(JSONObject json) throws JSONException {
+	public static ArrayList<OverlayItem> processJSONObjectBusLocation(JSONObject json) throws JSONException {
 		ArrayList<OverlayItem> list = new ArrayList<OverlayItem>();
 		if(json!=null) {
 			JSONArray j =(JSONArray)json.get("data");

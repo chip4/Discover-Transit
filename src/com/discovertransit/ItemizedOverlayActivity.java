@@ -1,6 +1,9 @@
 package com.discovertransit;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONException;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -24,12 +27,12 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 
 	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
 	private Context mContext;
-	private MapView mapView;
+	private MyMapView mapView;
 	private int routeNum;
 	private boolean isRouteDisplayed = false;
 	private RoutePathOverlay routeOverlay;
 	
-	public ItemizedOverlayActivity(Drawable defaultMarker, MapView mapView,int routeNum) {
+	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum) {
 		super(boundCenterBottom(defaultMarker), mapView);
 		this.routeNum = routeNum;
 		this.mapView = mapView;
@@ -47,12 +50,27 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 	}
 	
 	public void addOverlay(OverlayItem overlay) {
-		if(isPointVisible(overlay.getPoint(),mapView))
-			mOverlays.add(overlay);
+		mOverlays.add(overlay);
 	}
 	
 	public void callPopulate() {
 		populate();
+	}
+	
+	public ArrayList<OverlayItem> getmOverlays() {
+		return mOverlays;
+	}
+
+	public void setmOverlays(ArrayList<OverlayItem> mOverlays) {
+		this.mOverlays = mOverlays;
+	}
+
+	public int getRouteNum() {
+		return routeNum;
+	}
+
+	public void setRouteNum(int routeNum) {
+		this.routeNum = routeNum;
 	}
 	
 	protected boolean onBalloonTap(int index, OverlayItem item) {
@@ -60,6 +78,18 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 				Toast.LENGTH_LONG).show();
 
 		if(!isRouteDisplayed) {
+			List<ItemizedOverlayActivity> itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
+			Drawable draw = mapView.getResources().getDrawable(R.drawable.m2);
+			mapView.setRouteDisplayed(true);
+			mapView.postInvalidate();
+			try {
+				mapView.getDbHelper().getStopsforRoute(routeNum, draw, mapView, itemizedOverlayList);
+				MapViewActivity.displayItemizedOverlayList(itemizedOverlayList,mapView);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			mapView.getOverlays().add(MapViewActivity.drawBuses(routeNum,mapView.getResources().getDrawable(R.drawable.bus),mapView));
 			Route route = Route.populateRoute(routeNum,mapView);
 			routeOverlay = new RoutePathOverlay(route.getPathCoords());
 			mapView.getOverlays().add(routeOverlay);
@@ -73,16 +103,6 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 		return true;
 	}
 	
-	private static boolean isPointVisible(GeoPoint point,MapView mapView) {
-		if(point==null) return false;
-        Rect currentMapBoundsRect = new Rect();
-        Point startPosition = new Point();
-
-        mapView.getProjection().toPixels(point, startPosition);
-        mapView.getDrawingRect(currentMapBoundsRect);
-        return currentMapBoundsRect.contains(startPosition.x,startPosition.y);
-
-    }
 	
 	
 }

@@ -33,12 +33,30 @@ public class MyMapView extends MapView
     private int mLastZoomLevel;
     private Timer mChangeDelayTimer = new Timer();
     private MyMapView.OnChangeListener mChangeListener = null;
+    private boolean isRouteDisplayed = false;
+    private DataBaseHelper dbHelper;
  
     // ------------------------------------------------------------------------
     // CONSTRUCTORS
     // ------------------------------------------------------------------------
  
-    public MyMapView(Context context, String apiKey)
+    public DataBaseHelper getDbHelper() {
+		return dbHelper;
+	}
+
+	public void setDbHelper(DataBaseHelper dbHelper) {
+		this.dbHelper = dbHelper;
+	}
+
+	public boolean isRouteDisplayed() {
+		return isRouteDisplayed;
+	}
+
+	public void setRouteDisplayed(boolean isRouteDisplayed) {
+		this.isRouteDisplayed = isRouteDisplayed;
+	}
+
+	public MyMapView(Context context, String apiKey)
     {
         super(context, apiKey);
         init();
