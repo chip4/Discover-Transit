@@ -4,23 +4,20 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapView;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.drawable.Drawable;
+
+import com.google.android.maps.GeoPoint;
 
 public class DataBaseHelper extends SQLiteOpenHelper{
 
@@ -73,32 +70,6 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 
 	}
 
-	/**
-	 * Check if the database already exist to avoid re-copying the file each time you open the application.
-	 * @return true if it exists, false if it doesn't
-	 */
-	private boolean checkDataBase(){
-
-		SQLiteDatabase checkDB = null;
-
-		try{
-			String myPath = DB_PATH + DB_NAME;
-			checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
-
-		}catch(SQLiteException e){
-
-			//database does't exist yet.
-
-		}
-
-		if(checkDB != null){
-
-			checkDB.close();
-
-		}
-
-		return checkDB != null ? true : false;
-	}
 
 	/**
 	 * Copies your database from your local assets-folder to the just created empty database in the
@@ -175,7 +146,6 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			int route = cursor.getInt(5);
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			String time = "11:38";//getTime(route,dir,stopName);
 			Stop stop = new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir);
 			if(route!=curRoute)
 			{
@@ -204,7 +174,6 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			String time = "12:47";//getTime(route,dir,stopName);
 			Stop stop = new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir);
 			curItemizedOverlay.addOverlay(stop.getOverlay());
 			cursor.moveToNext();

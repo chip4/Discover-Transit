@@ -8,8 +8,6 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.RectF;
-import android.util.Pair;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -22,7 +20,8 @@ import com.google.android.maps.Projection;
 public class RoutePathOverlay extends Overlay {
  
         private int _pathColor;
-        private final List<GeoPoint> _points;
+        @SuppressWarnings("unused")
+		private final List<GeoPoint> _points;
     	private ArrayList<ArrayList<GeoPoint>> pathCoords;
         private boolean _drawStartEnd;
  
@@ -36,20 +35,12 @@ public class RoutePathOverlay extends Overlay {
                 _drawStartEnd = drawStartEnd;
         }
  
-        public RoutePathOverlay(ArrayList<ArrayList<GeoPoint>> points) {
+        @SuppressWarnings("unchecked")
+		public RoutePathOverlay(ArrayList<ArrayList<GeoPoint>> points) {
         		_points=null;
                 pathCoords = (ArrayList<ArrayList<GeoPoint>>)points.clone();
                 _pathColor = Color.RED;
                 _drawStartEnd = false;
-        }
- 
-        private void drawOval(Canvas canvas, Paint paint, Point point) {
-                Paint ovalPaint = new Paint(paint);
-                ovalPaint.setStyle(Paint.Style.FILL_AND_STROKE);
-                ovalPaint.setStrokeWidth(2);
-                int _radius = 6;
-                RectF oval = new RectF(point.x - _radius, point.y - _radius, point.x + _radius, point.y + _radius);
-                canvas.drawOval(oval, ovalPaint);               
         }
  
         public boolean draw(Canvas canvas, MapView mapView, boolean shadow, long when) {

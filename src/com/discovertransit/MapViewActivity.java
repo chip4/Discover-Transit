@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -18,35 +17,24 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.discovertransit.R;
+import android.content.Context;
+import android.database.SQLException;
+import android.graphics.drawable.Drawable;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.StrictMode;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
-import com.google.android.maps.OverlayItem;
-
-import android.app.Activity;
-import android.content.Context;
-import android.content.res.AssetManager;
-import android.database.SQLException;
-import android.graphics.Point;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.StrictMode;
-import android.os.SystemClock;
-import android.util.AttributeSet;
-import android.view.ViewTreeObserver;
-import android.view.ViewTreeObserver.OnGlobalLayoutListener;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 public class MapViewActivity extends MapActivity implements LocationListener {
 
@@ -124,22 +112,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		myMapController.animateTo(p);
 		myMapController.setZoom(17);
 		myMapController.setCenter(p);
-		/*ViewTreeObserver vto = mapView.getViewTreeObserver();
-		vto.addOnGlobalLayoutListener(
-				new ViewTreeObserver.OnGlobalLayoutListener() {
-					public void onGlobalLayout() {
-						mapView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-						System.out.println(mapView.getMapCenter().toString());
-						System.out.println(p.toString());
-						try {
-							doEverything(); 
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						//mapView.invalidate();
-					}
-				});*/
+		
 		Runnable waitForMap = new Runnable() {
 			public void run() {
 				if(mapView.getWidth()==0||mapView.getHeight()== 0) {
@@ -165,7 +138,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 		public void onChange(MapView view, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom)
 		{
-			if(!mapView.isRouteDisplayed()&&(count++>2)||mapView.forceRefresh()) {
+			if(!mapView.isRouteDisplayed()&&(++count>2)||mapView.forceRefresh()) {
 				// Check values
 				if(mapView.forceRefresh()) mapView.setForceRefresh(false); 	
 				if ((!newCenter.equals(oldCenter)) && (newZoom != oldZoom))
@@ -233,18 +206,10 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		double maxLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
 		double maxLat = (minLat - mapView.getLatitudeSpan()/1E6);
 		double minLon = (maxLon + mapView.getLongitudeSpan()/1E6);
-		drawableList = new ArrayList<Drawable>();
-		drawableList.add(this.getResources().getDrawable(R.drawable.m1));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m2));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m3));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m4));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m5));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m6));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m7));
+		drawableList = getDrawableList();
 		int size = 0;
 		try {
 			size = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,drawableList,mapView,itemizedOverlayList);
-			//itemizedOverlayList = dbHelper.getStopsNearby(33.797000000000004,-84.382004,33.784086,-84.392302,drawableList,mapView);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -254,17 +219,24 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 			mapView.getOverlays().add(itemizedOverlayList.get(i));
 		}
 		mapView.forceRefresh();
-		//mapView.getOverlays().add(drawBuses(1,this.getResources().getDrawable(R.drawable.bus),mapView));
 	}
 
-	private void debug(List<ItemizedOverlayActivity> list) {
-		for(int i = 0; i<list.size();i++) {
-			List<MyOverlayItem> mOverlays = list.get(i).getmOverlays();
-			System.out.println("mOverlays size: " + mOverlays.size());
-			for(int j = 0; j<mOverlays.size();j++)
-				System.out.println(mOverlays.get(j).getTitle());
-		}
+
+	private List<Drawable> getDrawableList() {
+		drawableList = new ArrayList<Drawable>();
+		drawableList.add(this.getResources().getDrawable(R.drawable.m1));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m2));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m3));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m4));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m5));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m6));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m7));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m8));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m9));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m10));
+		return drawableList;
 	}
+
 
 	@Override
 	protected boolean isRouteDisplayed() {
@@ -369,7 +341,6 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 		if(list!=null) {
 			for(int i = 0; i<list.size();i++)
-				if(isPointVisible(list.get(i).getPoint(),mapView))
 					overlay.addOverlay(list.get(i));
 		}
 		overlay.callPopulate();
@@ -401,48 +372,6 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 	}
 
-	private static boolean isPointVisible(GeoPoint point,MapView mapView) {
-		if(point==null) return false;
-		Rect currentMapBoundsRect = new Rect();
-		Point startPosition = new Point();
-
-		mapView.getProjection().toPixels(point, startPosition);
-		mapView.getDrawingRect(currentMapBoundsRect);
-
-		return currentMapBoundsRect.contains(startPosition.x,startPosition.y);
-	}
-
-	/*public void addToItemizedOverlayList(List<ItemizedOverlayActivity> itemizedOverlayList,Drawable draw,int routeNum, String detail) throws IOException {
-		ArrayList<Stop> list = null;
-
-		try {
-			AssetManager am = mapView.getContext().getAssets();
-			InputStream is = am.open("stops.json");
-			byte[] buffer = new byte[is.available()];
-			while((is.read(buffer)) != -1);
-			String jsontext = new String(buffer);
-			list = processJSONObject(new JSONObject(jsontext));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		if(list!=null&&!list.isEmpty()) {
-			index++;
-			int curRoute = list.get(0).getRoute();
-			ItemizedOverlayActivity curItemizedOverlay = new ItemizedOverlayActivity(draw,mapView,curRoute);
-			for(int i = 0; i<list.size();i++) {
-				if(list.get(i).getRoute()!=curRoute) {
-					curRoute = list.get(i).getRoute();
-					itemizedOverlayList.add(curItemizedOverlay);
-					draw = this.getResources().getDrawable(R.drawable.m2);
-					curItemizedOverlay = new ItemizedOverlayActivity(draw,mapView,curRoute);
-				}
-				curItemizedOverlay.addOverlay(list.get(i).getOverlay());
-			}
-			itemizedOverlayList.add(curItemizedOverlay);
-		}
-	}*/
 
 	public void onLocationChanged(Location arg0) {
 		// TODO Auto-generated method stub

@@ -1,26 +1,17 @@
 package com.discovertransit;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import android.app.Activity;
-import android.content.Context;
-import android.content.res.AssetManager;
-import android.content.res.Resources;
-import android.graphics.Point;
-import android.graphics.Rect;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import android.app.Activity;
+import android.content.res.AssetManager;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
-
-import android.util.Pair;
-import java.util.Map;
 
 public class Route extends Activity{
 	private int routeNum;
@@ -56,6 +47,7 @@ public class Route extends Activity{
 	public ArrayList<ArrayList<GeoPoint>> getPathCoords() {
 		return pathCoords;
 	}
+	@SuppressWarnings("unchecked")
 	public void setPathCoords(ArrayList<ArrayList<GeoPoint>> coords) {
 		this.pathCoords = (ArrayList<ArrayList<GeoPoint>>) coords.clone();
 	}

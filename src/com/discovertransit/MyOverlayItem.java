@@ -35,6 +35,22 @@ public class MyOverlayItem extends OverlayItem{
 		this.direction = direction;
 	}
 
+	public GeoPoint getPoint() {
+		return point;
+	}
+
+	public void setPoint(GeoPoint point) {
+		this.point = point;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public String getSnippet() {
+		return snippet;
+	}
+
 	public MyOverlayItem(GeoPoint point, String title, String snippet) {
 		super(point, title, snippet);
 		this.point = point;

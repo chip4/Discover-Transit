@@ -1,24 +1,12 @@
 package com.discovertransit;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.json.JSONException;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
-import android.location.LocationListener;
-import android.os.Bundle;
 import android.widget.Toast;
-
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.ItemizedOverlay;
-import com.google.android.maps.MapView;
-import com.google.android.maps.OverlayItem;
 
 import com.readystatesoftware.mapviewballoons.BalloonItemizedOverlay;
 
@@ -76,6 +64,8 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 
 	@Override
 	protected void onBalloonOpen(int index) {
+		Toast.makeText(mContext, "[Calculating Next Arrival Time]",
+				Toast.LENGTH_LONG).show();
 		this.tempIndex = index;
 		Runnable run = new Runnable() {
 		public void run () {
