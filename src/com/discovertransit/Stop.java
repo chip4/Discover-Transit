@@ -1,22 +1,32 @@
  package com.discovertransit;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.OverlayItem;
 
 public class Stop {
-	private OverlayItem overlay;
+	private MyOverlayItem overlay;
 	private int route;
 	private String title;
 	private String snippet;
+	private String stopName;
+	private String direction;
 	
 	
-	public Stop(GeoPoint point,String title,String snippet,int route) {
-		overlay = new OverlayItem(point,title,snippet);
+	public Stop(GeoPoint point,String title,String snippet,int route, String stopName, String direction) {
+		overlay = new MyOverlayItem(point,title,snippet,route,stopName,direction);
 		this.title = title;
 		this.snippet = snippet;
 		this.route = route;
+		this.stopName = stopName;
+		this.direction = direction;
 	}
 
+	
+	
 	public String getTitle() {
 		return title;
 	}
@@ -33,11 +43,11 @@ public class Stop {
 		this.snippet = snippet;
 	}
 
-	public OverlayItem getOverlay() {
+	public MyOverlayItem getOverlay() {
 		return overlay;
 	}
 
-	public void setOverlay(OverlayItem overlay) {
+	public void setOverlay(MyOverlayItem overlay) {
 		this.overlay = overlay;
 	}
 

@@ -175,8 +175,8 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			int route = cursor.getInt(5);
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			String time = "";//getTime(route,dir,stopName);
-			Stop stop = new Stop(point,stopName,dir+ "--Next bus arrives at: "+time,route);
+			String time = "11:38";//getTime(route,dir,stopName);
+			Stop stop = new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir);
 			if(route!=curRoute)
 			{
 				curRoute = route;
@@ -195,23 +195,20 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 		return size;
 	}
 	
-	public int getStopsforRoute(int route, Drawable draw, MyMapView mapView,List<ItemizedOverlayActivity> itemizedOverlayList) throws JSONException {
+	public int getStopsforRoute(int route, Drawable draw, MyMapView mapView,ItemizedOverlayActivity curItemizedOverlay) throws JSONException {
 		Cursor cursor = myDataBase.rawQuery("SELECT _id,stop,direction,lat,lon,route FROM Stops where(route='"+route+"') ORDER BY route",null);
 		//GeoPoint point;
 		if(!cursor.moveToFirst()) return -1;
 		int size = 0;
-		ItemizedOverlayActivity curItemizedOverlay = new ItemizedOverlayActivity(draw,mapView,route);
 		while(!cursor.isAfterLast()) {
 			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			String time = "";//getTime(route,dir,stopName);
-			Stop stop = new Stop(point,stopName,dir+ "--Next bus arrives at: "+time,route);
+			String time = "12:47";//getTime(route,dir,stopName);
+			Stop stop = new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir);
 			curItemizedOverlay.addOverlay(stop.getOverlay());
 			cursor.moveToNext();
 		}
-		size++;
-		itemizedOverlayList.add(curItemizedOverlay);
 		return size;
 	}
 

@@ -35,6 +35,7 @@ public class MyMapView extends MapView
     private MyMapView.OnChangeListener mChangeListener = null;
     private boolean isRouteDisplayed = false;
     private DataBaseHelper dbHelper;
+	private boolean refresh = false;
  
     // ------------------------------------------------------------------------
     // CONSTRUCTORS
@@ -150,5 +151,13 @@ public class MyMapView extends MapView
     {
         return (getZoomLevel() != mLastZoomLevel);
     }
+
+	public boolean forceRefresh() {
+		return refresh ;
+	}
+	
+	public void setForceRefresh(boolean refresh) {
+		this.refresh = refresh;
+	}
  
 }

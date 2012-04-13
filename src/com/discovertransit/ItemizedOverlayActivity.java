@@ -23,15 +23,16 @@ import com.google.android.maps.OverlayItem;
 import com.readystatesoftware.mapviewballoons.BalloonItemizedOverlay;
 
 
-public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem> {
+public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayItem> {
 
-	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
+	private ArrayList<MyOverlayItem> mOverlays = new ArrayList<MyOverlayItem>();
 	private Context mContext;
 	private MyMapView mapView;
 	private int routeNum;
 	private boolean isRouteDisplayed = false;
 	private RoutePathOverlay routeOverlay;
-	
+	private int tempIndex;
+
 	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum) {
 		super(boundCenterBottom(defaultMarker), mapView);
 		this.routeNum = routeNum;
@@ -40,7 +41,7 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 	}
 
 	@Override
-	protected OverlayItem createItem(int i) {
+	protected MyOverlayItem createItem(int i) {
 		return mOverlays.get(i);
 	}
 
@@ -48,20 +49,20 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 	public int size() {
 		return mOverlays.size();
 	}
-	
-	public void addOverlay(OverlayItem overlay) {
+
+	public void addOverlay(MyOverlayItem overlay) {
 		mOverlays.add(overlay);
 	}
-	
+
 	public void callPopulate() {
 		populate();
 	}
-	
-	public ArrayList<OverlayItem> getmOverlays() {
+
+	public ArrayList<MyOverlayItem> getmOverlays() {
 		return mOverlays;
 	}
 
-	public void setmOverlays(ArrayList<OverlayItem> mOverlays) {
+	public void setmOverlays(ArrayList<MyOverlayItem> mOverlays) {
 		this.mOverlays = mOverlays;
 	}
 
@@ -72,19 +73,34 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 	public void setRouteNum(int routeNum) {
 		this.routeNum = routeNum;
 	}
-	
-	protected boolean onBalloonTap(int index, OverlayItem item) {
-		Toast.makeText(mContext, "onBalloonTap for Route: " + routeNum,
-				Toast.LENGTH_LONG).show();
+
+	@Override
+	protected void onBalloonOpen(int index) {
+		this.tempIndex = index;
+		Runnable run = new Runnable() {
+		public void run () {
+		if(getItem(tempIndex).getStopName()!=null) {
+			try {
+				Toast.makeText(mContext, "Next Bus Arrives: " + getItem(tempIndex).getTime(),
+						Toast.LENGTH_LONG).show();
+			} catch (JSONException e) {
+				Toast.makeText(mContext, "Next Bus Arrives: [Unknown]",
+						Toast.LENGTH_LONG).show();
+			}
+		}
+		}};
+		mapView.post(run);
+	}
+
+
+	protected boolean onBalloonTap(int index, MyOverlayItem item) {
 
 		if(!isRouteDisplayed) {
-			List<ItemizedOverlayActivity> itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
 			Drawable draw = mapView.getResources().getDrawable(R.drawable.m2);
 			mapView.setRouteDisplayed(true);
-			mapView.postInvalidate();
 			try {
-				mapView.getDbHelper().getStopsforRoute(routeNum, draw, mapView, itemizedOverlayList);
-				MapViewActivity.displayItemizedOverlayList(itemizedOverlayList,mapView);
+				mapView.getDbHelper().getStopsforRoute(routeNum, draw, mapView, this);
+				this.callPopulate();
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -97,14 +113,17 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<OverlayItem>
 		}
 		else {
 			isRouteDisplayed = false;
+			mapView.setRouteDisplayed(false);
 			mapView.getOverlays().remove(routeOverlay);
-			
+			mapView.getOverlays().remove(this);
+			mapView.setForceRefresh(true);
+
 		}
 		return true;
 	}
-	
-	
-	
+
+
+
 }
 
 
