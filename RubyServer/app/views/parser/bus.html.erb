@@ -1,0 +1,32 @@
+<p> Current Time: <%= @response.currentTime %> </p>
+<% if @response.status == "FAIL"%>
+	<p><em>Error: No buses running on this route.</em></p>
+<% else %>
+	<table border="1">
+		<% @response.data.each do |bus|%>
+		<tr>
+			<td colspan="2"><h3><%= bus.num %></h3></td>
+		</tr>
+		<tr>
+			<td>Latitude</td>
+			<td><%= bus.lat %></td>
+		</tr>
+		<tr>
+			<td>Longitude</td>
+			<td><%= bus.lon %>
+		</tr>
+		<tr>
+			<td>Next Stop</td>
+			<td><%= bus.next_stop %>
+		</tr>
+		<tr>
+			<td>Route #</td>
+			<td><%= bus.route %>
+		</tr>
+		<tr>
+			<td>Direction</td>
+			<td><%= bus.direction %>
+		</tr>
+		<% end %>
+	</table>
+<% end %>

@@ -1,0 +1,7 @@
+<p> Current Time: <%= @response.currentTime %> </p>
+<% if @response.status == "FAIL"%>
+	<p><em>Error: The stop could not be found.</em></p>
+	<%= @response.data%>
+<% else %>
+	<%= render "stop_table" %>
+<% end %>

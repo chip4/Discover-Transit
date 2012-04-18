@@ -1,0 +1,37 @@
+<table border="1">
+	<%
+		stop = ''
+		direction = ''
+		@response.data.each do |r|
+			if r.stop != nil
+				stop = r.stop
+			end
+	
+			if r.direction != nil
+				direction = r.direction
+			end
+	%>
+	<tr>
+		<td colspan="2"><h3><%= stop + ' - ' + direction %></td></h3>
+	</tr>
+	<tr>
+		<td>Route #</td>
+		<td><%= r.route %></td>
+	</tr>
+	<tr>
+		<td>Latitude</td>
+		<td><%= r.lat %></td>
+	</tr>
+	<tr>
+		<td>Longitude</td>
+		<td><%= r.lon %></td>
+	</tr>
+	<tr>
+		<td>Next Stop(s)</td>
+		<td> <% r.times.each do |time| %>
+		<%= time %>
+		<br/>
+		<% end %> </td>
+	</tr>
+	<% end %>
+</table>

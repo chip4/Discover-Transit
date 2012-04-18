@@ -1,0 +1,28 @@
+<p> Current Time: <%= @response.currentTime %> </p>
+<% if @response.status == "FAIL"%>
+	<p><em>Error: The stop could not be found.</em></p>
+<% else %>
+	<table border="1">
+		<tr><td colspan="2"><h3><%= @response.data.stop + ' - ' + @response.data.direction %></td></h3></tr>
+		<tr>
+			<td>Route #</td>
+			<td><%= @response.data.route %>
+		</tr>
+		<tr>
+			<td>Latitude</td>
+			<td><%= @response.data.lat %></td>
+		</tr>
+		<tr>
+			<td>Longitude</td>
+			<td><%= @response.data.lon %></td>
+		</tr>
+		<tr>
+			<td>Next Stop(s)</td>
+			<td>
+				<% @response.data.times.each do |time| %>
+						<%= time %> <br/>
+				<% end %>
+			</td>
+		</tr>	
+	</table>
+<% end %>
