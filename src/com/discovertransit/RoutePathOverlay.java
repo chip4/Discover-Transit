@@ -42,6 +42,14 @@ public class RoutePathOverlay extends Overlay {
                 _pathColor = Color.RED;
                 _drawStartEnd = false;
         }
+        
+        @SuppressWarnings("unchecked")
+		public RoutePathOverlay(ArrayList<ArrayList<GeoPoint>> points,int pathColor) {
+        		_points=null;
+                pathCoords = (ArrayList<ArrayList<GeoPoint>>)points.clone();
+                _pathColor = pathColor;
+                _drawStartEnd = false;
+        }
  
         public boolean draw(Canvas canvas, MapView mapView, boolean shadow, long when) {
                 Projection projection = mapView.getProjection();

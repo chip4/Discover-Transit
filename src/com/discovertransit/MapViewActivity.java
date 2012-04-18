@@ -24,6 +24,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.widget.LinearLayout;
@@ -73,7 +74,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		setContentView(R.layout.main);
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 		StrictMode.setThreadPolicy(policy);
-
+        new ServerWakeup().execute();
 		mapView = (MyMapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
 		mapView.setSatellite(false);
@@ -129,8 +130,6 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 			}
 		};
 		mapView.postDelayed(waitForMap, 100);
-
-
 	}
 
 	private class MapViewChangeListener implements MyMapView.OnChangeListener
@@ -138,20 +137,12 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 		public void onChange(MapView view, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom)
 		{
-			if(!mapView.isRouteDisplayed()&&(++count>2)||mapView.forceRefresh()) {
+			if(!mapView.isRouteDisplayed()||mapView.forceRefresh()) {
 				// Check values
 				if(mapView.forceRefresh()) mapView.setForceRefresh(false); 	
 				if ((!newCenter.equals(oldCenter)) && (newZoom != oldZoom))
 				{
 					// Map Zoom and Pan Detected
-					// TODO: Add special action here
-					/*try {
-					doEverything();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/
-					//refreshMap();
 				}
 				else if (!newCenter.equals(oldCenter)&&newZoom>14)
 				{
@@ -180,19 +171,10 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 					};
 					runOnUiThread(updateMap);
 					System.out.println("Map Pan Detected");
-					count=0;
 				}
 				else if (newZoom != oldZoom)
 				{
 					// Map Zoom Detected
-					// TODO: Add special action here
-					/*try {
-					doEverything();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/
-					//refreshMap();
 				}
 			}
 		}
@@ -330,7 +312,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 
 	public static ItemizedOverlayActivity drawBuses(int route, Drawable drawable, MyMapView mapView) {
-		ItemizedOverlayActivity overlay = new ItemizedOverlayActivity(drawable, mapView,route);
+		ItemizedOverlayActivity overlay = new ItemizedOverlayActivity(drawable, mapView,route,false);
 		ArrayList<MyOverlayItem> list = null;
 		try {
 			list = processJSONObjectBusLocation(connect("http://discovertransit.herokuapp.com/bus/"+route+".json"));
@@ -371,6 +353,29 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		return list;
 
 	}
+	
+
+    @SuppressWarnings("unused")
+	private class ServerWakeup extends AsyncTask<Void, Void, Void> {
+        @Override
+		protected Void doInBackground(Void... params) {
+        	
+        	HttpClient httpclient = new DefaultHttpClient();
+
+    		// Prepare a request object
+    		HttpGet httpget = new HttpGet("http://discovertransit.herokuapp.com/"); 
+
+    		// Execute the request
+    		HttpResponse response;
+    		try {
+    			response = httpclient.execute(httpget);
+
+    			} catch(Exception e) {
+    				e.printStackTrace();
+    			}
+			return null;
+		}
+    }
 
 
 	public void onLocationChanged(Location arg0) {

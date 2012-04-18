@@ -112,7 +112,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 	@Override
 	public synchronized void close() {
 
-		if(myDataBase != null)
+		if((myDataBase != null) && myDataBase.isOpen())
 			myDataBase.close();
 
 		super.close();
@@ -139,8 +139,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 		if(!cursor.moveToFirst()) return -1;
 		int size = 0;
 		int curRoute = cursor.getInt(5);
-		int drawableIndex = draw.size()-1;
-		ItemizedOverlayActivity curItemizedOverlay = new ItemizedOverlayActivity(draw.get(drawableIndex),mapView,curRoute);
+		ItemizedOverlayActivity curItemizedOverlay = new ItemizedOverlayActivity(draw.get(curRoute%10),mapView,curRoute);
 		while(!cursor.isAfterLast()) {
 			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
 			int route = cursor.getInt(5);
@@ -150,11 +149,9 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			if(route!=curRoute)
 			{
 				curRoute = route;
-				drawableIndex--;
 				size++;
-				if(drawableIndex<0) drawableIndex = draw.size()-1;
 				itemizedOverlayList.add(curItemizedOverlay);
-				curItemizedOverlay = new ItemizedOverlayActivity(draw.get(drawableIndex),mapView,curRoute);
+				curItemizedOverlay = new ItemizedOverlayActivity(draw.get(curRoute%10),mapView,curRoute);
 
 			}
 			curItemizedOverlay.addOverlay(stop.getOverlay());

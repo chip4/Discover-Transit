@@ -1,10 +1,12 @@
 package com.discovertransit;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONException;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.widget.Toast;
 
@@ -20,12 +22,45 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	private boolean isRouteDisplayed = false;
 	private RoutePathOverlay routeOverlay;
 	private int tempIndex;
+	private List<Integer> colorList;
+	private boolean isStop;
 
 	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum) {
 		super(boundCenterBottom(defaultMarker), mapView);
 		this.routeNum = routeNum;
 		this.mapView = mapView;
 		mContext = mapView.getContext();
+		isStop = true;
+		colorList = new ArrayList<Integer>();
+		colorList.add(Color.RED);
+		colorList.add(Color.MAGENTA);
+		colorList.add(Color.GREEN);
+		colorList.add(Color.CYAN);
+		colorList.add(Color.BLUE);
+		colorList.add(Color.RED);
+		colorList.add(Color.RED);
+		colorList.add(Color.GREEN);
+		colorList.add(Color.MAGENTA);
+		colorList.add(Color.GREEN);
+	}
+
+	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum,boolean isStop) {
+		super(boundCenterBottom(defaultMarker), mapView);
+		this.routeNum = routeNum;
+		this.mapView = mapView;
+		mContext = mapView.getContext();
+		this.isStop = isStop;
+		colorList = new ArrayList<Integer>();
+		colorList.add(Color.RED);
+		colorList.add(Color.MAGENTA);
+		colorList.add(Color.GREEN);
+		colorList.add(Color.CYAN);
+		colorList.add(Color.BLUE);
+		colorList.add(Color.RED);
+		colorList.add(Color.RED);
+		colorList.add(Color.GREEN);
+		colorList.add(Color.MAGENTA);
+		colorList.add(Color.GREEN);
 	}
 
 	@Override
@@ -64,12 +99,8 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 
 	@Override
 	protected void onBalloonOpen(int index) {
-		Toast.makeText(mContext, "[Calculating Next Arrival Time]",
-				Toast.LENGTH_LONG).show();
-		this.tempIndex = index;
-		Runnable run = new Runnable() {
-		public void run () {
-		if(getItem(tempIndex).getStopName()!=null) {
+		if(isStop) {
+			this.tempIndex = index;
 			try {
 				Toast.makeText(mContext, "Next Bus Arrives: " + getItem(tempIndex).getTime(),
 						Toast.LENGTH_LONG).show();
@@ -78,16 +109,22 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 						Toast.LENGTH_LONG).show();
 			}
 		}
-		}};
-		mapView.post(run);
 	}
 
 
 	protected boolean onBalloonTap(int index, MyOverlayItem item) {
 
 		if(!isRouteDisplayed) {
-			Drawable draw = mapView.getResources().getDrawable(R.drawable.m2);
+			Drawable draw = mapView.getDrawableList().get(routeNum%10);
 			mapView.setRouteDisplayed(true);
+			mapView.getOverlays().clear();
+			mapView.postInvalidate();
+			mapView.getOverlays().add(this);
+
+			mapView.getOverlays().add(MapViewActivity.drawBuses(routeNum,mapView.getResources().getDrawable(R.drawable.bus),mapView));
+			Route route = Route.populateRoute(routeNum,mapView);
+			routeOverlay = new RoutePathOverlay(route.getPathCoords(),colorList.get(routeNum%10));
+			mapView.getOverlays().add(routeOverlay);
 			try {
 				mapView.getDbHelper().getStopsforRoute(routeNum, draw, mapView, this);
 				this.callPopulate();
@@ -95,24 +132,18 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			mapView.getOverlays().add(MapViewActivity.drawBuses(routeNum,mapView.getResources().getDrawable(R.drawable.bus),mapView));
-			Route route = Route.populateRoute(routeNum,mapView);
-			routeOverlay = new RoutePathOverlay(route.getPathCoords());
-			mapView.getOverlays().add(routeOverlay);
 			isRouteDisplayed = true;
 		}
 		else {
 			isRouteDisplayed = false;
 			mapView.setRouteDisplayed(false);
-			mapView.getOverlays().remove(routeOverlay);
-			mapView.getOverlays().remove(this);
+			mapView.getOverlays().clear();
+			mapView.postInvalidate();
 			mapView.setForceRefresh(true);
 
 		}
 		return true;
 	}
-
-
 
 }
 

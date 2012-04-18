@@ -1,9 +1,12 @@
 package com.discovertransit;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
- 
+
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
  
@@ -36,6 +39,7 @@ public class MyMapView extends MapView
     private boolean isRouteDisplayed = false;
     private DataBaseHelper dbHelper;
 	private boolean refresh = false;
+	private ArrayList<Drawable> drawableList;
  
     // ------------------------------------------------------------------------
     // CONSTRUCTORS
@@ -81,6 +85,7 @@ public class MyMapView extends MapView
         mLastCenterPosition = this.getMapCenter();
         mLastZoomLevel = this.getZoomLevel();
     }
+
  
     // ------------------------------------------------------------------------
     // GETTERS / SETTERS
@@ -158,6 +163,21 @@ public class MyMapView extends MapView
 	
 	public void setForceRefresh(boolean refresh) {
 		this.refresh = refresh;
+	}
+	
+	public List<Drawable> getDrawableList() {
+		drawableList = new ArrayList<Drawable>();
+		drawableList.add(this.getResources().getDrawable(R.drawable.m1));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m2));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m3));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m4));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m5));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m6));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m7));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m8));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m9));
+		drawableList.add(this.getResources().getDrawable(R.drawable.m10));
+		return drawableList;
 	}
  
 }
