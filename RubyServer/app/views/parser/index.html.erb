@@ -1,0 +1,269 @@
+<a name="top">
+	<h1>Documentation</h1>
+</a>
+
+<ol>
+	<li><a href="#times">Upcoming times for a stop</a></li>
+	<li><a href="#bus">Bus location</a></li>
+	<li><a href="#astops">All bus stops for a given route</a></li>
+	<li><a href="#majstops">Major/Minor stops for a given route</a></li>
+	<li><a href="#stops">All stops</a></li>
+</ol>
+
+<hr/>
+
+<a name="times"><h2>Upcoming times for a stop</h2></a>
+<p>
+	To get times go to the following address: <br />
+	<pre>
+/times/&lt;route#&gt;/&lt;stop&gt;/&lt;direction&gt;
+		</pre>
+	Fill in the proper information for each part and be sure to make sure that all spaces and periods are removed from the stop and direction.
+	Don't worry about capitilization as the seach is agnostic to capitalization.
+	If you want the JSON response just add &quot;.json&quot; to the end of the URI.  
+	<br/>
+	<br/>
+	An example of a good JSON response is as follows:
+	<pre>
+{
+   "status":"GOOD",
+   "currentTime":"3/29/2012 6:27:42 PM",
+   "data":
+   {
+      "stop":"Alabama &amp; Broad St.",
+      "direction":"Northbound",
+      "lat":33.7534757,
+      "lon":-84.3920023,
+      "route":1,
+      "times":["6:45 PM","7:30 PM","8:15 PM"]
+   }
+}
+		</pre>
+	<br/>
+	An example of a JSON response to a failure is as follows:
+	<pre>
+{
+   "status":"FAIL",
+   "currentTime":"3/29/2012 6:33:39 PM",
+   "data":
+   {
+      "Error":
+      {
+         "message":"Stop not found"
+      }
+   }
+}
+		</pre>
+</p>
+<a href="#top">Go back to top</a>
+<hr />
+
+<a name="bus"><h2>Bus location</h2></a>
+<p>
+	To get all buses on a particular route go to the following URI:
+	<pre>
+/bus/&lt;route#&gt;
+	</pre>
+	Fill in the route number with a valid route and the information about all buses on that route will be returned.
+	For a JSON response add &quot;.json&quot; to the end of the URI.
+	<br/>
+	<br/>
+	A successfull JSON response will look like the following:
+	<pre>
+{
+   "status":"GOOD",
+   "currentTime":"3/30/2012 2:56:23 AM",
+   "data":
+   [
+      {
+      	"lat":"33.7907535",
+        "lon":"-84.4418383",
+        "num":2501,
+        "next_stop":"Destination reached",
+        "route":3,
+        "direction":"Southbound"
+       }
+   ]
+}
+	</pre>
+	A JSON error response will look like the following:
+	<pre>
+{
+   "status":"FAIL",
+   "currentTime":"3/29/2012 6:33:39 PM",
+   "data":
+   {
+      "Error":
+      {
+         "message":"No buses currently on route 1"
+      }
+   }
+}	
+	</pre>
+</p>
+
+<a href="#top">Go back to top</a>
+<hr />
+
+<a name="astops"><h2>All bus stops for a given route</h2></a>
+<p>
+	To get all the bus routes (520 and 521 currently aren't in there) go to the following address:
+	<pre>
+/stops/&lt;route#&gt;		
+	</pre>
+	All you need to do is just supply the route number after stops and you will get all the stops for that route.  Just add 
+	&quot;.json&quot; to the end of the URI to get a json response.
+	<br/>
+	An example of a good JSON response is as follows:
+	<pre>
+{
+   "status":"GOOD",
+   "currentTime":"3/29/2012 10:18:09 PM",
+   "data":
+   [
+      {
+      	"stop":"Alabama & Broad St.",
+      	"direction":"Northbound",
+      	"lat":33.7534757,
+      	"lon":-84.3920023,
+      	"route":1,
+      	"times":["10:30 PM","11:15 PM","12:00 AM"]
+      },
+      {
+      	"stop":"Luckie St & North Ave.",
+      	"direction":"Northbound",
+      	"lat":33.7704466,
+      	"lon":-84.3961869,
+      	"route":1
+      	"times":["10:41 PM","11:26 PM","12:11 AM"]
+      },
+      ...
+   ]
+}
+	</pre>
+	<br/>
+	An example of a JSON response to a failure is as follows:
+	<pre>
+{
+   "status":"FAIL",
+   "currentTime":"3/29/2012 6:33:39 PM",
+   "data":
+   {
+      "Error":
+      {
+         "message":"Stop not found"
+      }
+   }
+}
+	</pre>
+</p>
+<a href="#top">Go back to top</a>
+<hr />
+
+<a name="majstops"><h2>Major/Minor stops for a given route</h2></a>
+<p>
+	To get all the major or minor bus stops for a particular route (520 and 521 currently aren't in there) go to the following address:
+	<pre>
+/stops/&lt;route&gt;/&lt;major|minor&gt;
+	</pre>
+	To get a json response add &quot;.json&quot; to the end of the URI.
+	<br/>
+	An example of a good JSON response is as follows:
+	<pre>
+{
+   "status":"GOOD",
+   "currentTime":"3/29/2012 10:18:09 PM",
+   "data":
+   [
+      {
+      	"stop":"Alabama & Broad St.",
+      	"direction":"Northbound",
+      	"lat":33.7534757,
+      	"lon":-84.3920023,
+      	"route":1,
+      	"times":["10:30 PM","11:15 PM","12:00 AM"]
+      },
+      {
+      	"stop":"Luckie St & North Ave.",
+      	"direction":"Northbound",
+      	"lat":33.7704466,
+      	"lon":-84.3961869,
+      	"route":1
+      	"times":["10:41 PM","11:26 PM","12:11 AM"]
+      },
+      ...
+   ]
+}
+	</pre>
+	<br/>
+	An example of a JSON response to a failure is as follows:
+	<pre>
+{
+   "status":"FAIL",
+   "currentTime":"3/29/2012 6:33:39 PM",
+   "data":
+   {
+      "Error":
+      {
+         "message":"Stop not found"
+      }
+   }
+}
+	</pre>
+</p>
+<a href="#top">Go back to top</a>
+<hr />
+
+<a name="stops"><h2>All bus stops</h2></a>
+<p>
+	To get all the bus stops for every route (520 and 521 currently aren't in there) go to the following address:
+	<pre>
+/stops		
+	</pre>
+	To get a json response add &quot;.json&quot; to the end of the URI.
+	<br/>
+	An example of a good JSON response is as follows:
+	<pre>
+{
+   "status":"GOOD",
+   "currentTime":"3/29/2012 10:18:09 PM",
+   "data":
+   [
+      {
+      	"stop":"Alabama & Broad St.",
+      	"direction":"Northbound",
+      	"lat":33.7534757,
+      	"lon":-84.3920023,
+      	"route":1,
+      	"times":["10:30 PM","11:15 PM","12:00 AM"]
+      },
+      {
+      	"stop":"Luckie St & North Ave.",
+      	"direction":"Northbound",
+      	"lat":33.7704466,
+      	"lon":-84.3961869,
+      	"route":1
+      	"times":["10:41 PM","11:26 PM","12:11 AM"]
+      },
+      ...
+   ]
+}
+	</pre>
+	<br/>
+	An example of a JSON response to a failure is as follows:
+	<pre>
+{
+   "status":"FAIL",
+   "currentTime":"3/29/2012 6:33:39 PM",
+   "data":
+   {
+      "Error":
+      {
+         "message":"Stop not found"
+      }
+   }
+}
+	</pre>
+</p>
+<a href="#top">Go back to top</a>
+<hr />
