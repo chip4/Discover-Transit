@@ -45,7 +45,7 @@ public class DisplayArrivalTimeTask extends AsyncTask<String,Void,String>{
 		return time;
 	}
 	protected void onPreExecute() {
-		Toast.makeText(context, "[loading]", Toast.LENGTH_LONG).show();
+		Toast.makeText(context, "Retrieving Arrival Time ...", Toast.LENGTH_SHORT).show();
 	}
 	protected void onPostExecute(String time) {
 		if(time==null)
