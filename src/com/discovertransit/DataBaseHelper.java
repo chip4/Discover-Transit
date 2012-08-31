@@ -4,11 +4,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.Map;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -132,38 +130,83 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 	// Add your public helper methods to access and get content from the database.
 	// You could return cursors by doing "return myDataBase.query(....)" so it'd be easy
 	// to you to create adapters for your views.
-	public int getStopsNearby(double minLat, double minLon, double maxLat, double maxLon, List<Drawable> draw, MyMapView mapView,List<ItemizedOverlayActivity> itemizedOverlayList) throws JSONException {
-		System.out.println("SELECT _id,stop,direction,lat,lon,route FROM Stops where(lat<'"+minLat+"' AND lon<'"+minLon+"' AND lat>'"+maxLat+"' AND lon>'"+maxLon+"') ORDER BY route");
-		Cursor cursor = myDataBase.rawQuery("SELECT _id,stop,direction,lat,lon,route FROM Stops where(lat<'"+minLat+"' AND lon<'"+minLon+"' AND lat>'"+maxLat+"' AND lon>'"+maxLon+"') ORDER BY route",null);
-		//GeoPoint point;
-		if(!cursor.moveToFirst()) return -1;
-		int size = 0;
-		int curRoute = cursor.getInt(5);
-		ItemizedOverlayActivity curItemizedOverlay = new ItemizedOverlayActivity(draw.get(curRoute%10),mapView,curRoute);
+	public Map<Integer, ItemizedOverlayActivity> getStopsNearby(double minLat, double minLon, double maxLat, double maxLon,boolean limit, List<Drawable> draw, MyMapView mapView) {
+		String amount = "";
+		if(limit)
+			amount = "AND amount<2";
+		String query = "SELECT _id,stop,direction,lat,lon,route,amount FROM BusStops WHERE (lat BETWEEN '"+minLat+"' AND '"+maxLat+
+				"' AND lon BETWEEN '"+minLon+"' AND '"+maxLon+"'"+amount+") ORDER BY route";
+		System.out.println(query);
+		Cursor cursor = myDataBase.rawQuery(query,null);
+		
+		Map<Integer, ItemizedOverlayActivity> mMap = new HashMap<Integer, ItemizedOverlayActivity>();
+		if(!cursor.moveToFirst()) return null;
+		int route = cursor.getInt(5);
+		ItemizedOverlayActivity curItemizedOverlay = new ItemizedOverlayActivity(draw.get(route%10),mapView,route);
 		while(!cursor.isAfterLast()) {
 			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
-			int route = cursor.getInt(5);
+			route = cursor.getInt(5);
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
 			Stop stop = new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir);
-			if(route!=curRoute)
+			if(!mMap.containsKey(route))
 			{
-				curRoute = route;
-				size++;
-				itemizedOverlayList.add(curItemizedOverlay);
-				curItemizedOverlay = new ItemizedOverlayActivity(draw.get(curRoute%10),mapView,curRoute);
+				curItemizedOverlay = new ItemizedOverlayActivity(draw.get(route%10),mapView,route);
+				mMap.put(route, curItemizedOverlay);
 
 			}
 			curItemizedOverlay.addOverlay(stop.getOverlay());
 			cursor.moveToNext();
 		}
-		size++;
-		itemizedOverlayList.add(curItemizedOverlay);
-		return size;
+		return mMap;
 	}
 	
-	public int getStopsforRoute(int route, Drawable draw, MyMapView mapView,ItemizedOverlayActivity curItemizedOverlay) throws JSONException {
-		Cursor cursor = myDataBase.rawQuery("SELECT _id,stop,direction,lat,lon,route FROM Stops where(route='"+route+"') ORDER BY route",null);
+	
+	public Map<Integer, ItemizedOverlayActivity> addOverlappingStopsNearby(double minLat, double minLon, double maxLat, double maxLon,List<Drawable> draw, MyMapView mapView,Map<Integer, ItemizedOverlayActivity> mMap) {
+		String query = "SELECT _id, lat,lon,amount,stop,direction,route FROM BusStops WHERE (lat BETWEEN '"+
+				+minLat+"' AND '"+maxLat+"' AND lon BETWEEN '"+minLon+"' AND '"+maxLon+"' AND amount>1) ORDER BY lat,lon";
+		System.out.println(query);
+		Cursor cursor = myDataBase.rawQuery(query,null);
+		if(!cursor.moveToFirst()) return null;
+		if(mMap == null) mMap = new HashMap<Integer, ItemizedOverlayActivity>();
+		double total = cursor.getDouble(3);
+		double cur = cursor.getDouble(3);
+		double delta = 0;
+		while(!cursor.isAfterLast()) {
+			if(cur==0) {
+				delta = 0;
+				cur = cursor.getDouble(3);
+				total= cur;
+			}
+			int curRoute = cursor.getInt(6);
+			String stopName = cursor.getString(4);
+			String dir = cursor.getString(5);
+			GeoPoint point = pointNearby(cursor.getDouble(1),cursor.getDouble(2),7,delta);
+			Stop stop = new Stop(point,"Route "+curRoute+": "+dir,stopName,curRoute,stopName,dir);
+			if(!mMap.containsKey(curRoute)) {
+				mMap.put(curRoute, new ItemizedOverlayActivity(draw.get(curRoute%10),mapView,curRoute));
+			}
+			
+			mMap.get(curRoute).addOverlay(stop.getOverlay());
+			delta+=Math.PI*2/total;
+			cur--;
+			cursor.moveToNext();
+		}
+		return mMap;
+	}
+	
+	public GeoPoint pointNearby(double lat, double lon,double distance,double delta) {
+
+		lat = Math.toRadians(lat);
+		lon = Math.toRadians(lon);
+		double dist = Math.toRadians(distance / 1852d / 60d);
+		double lat1 = Math.asin(Math.sin(lat) * Math.cos(dist) + Math.cos(lat)*Math.sin(dist)*Math.cos(delta*2*Math.PI));
+		double lon1 = (lon + Math.atan2(Math.sin(delta*2*Math.PI) * Math.sin(dist) * Math.cos(lat), Math.cos(dist) - Math.sin(lat) * Math.sin(lat1))+ Math.PI) % (2 * Math.PI) - Math.PI;
+		return new GeoPoint((int)(Math.toDegrees(lat1)*1E6),(int)(Math.toDegrees(lon1)*1E6));
+	}
+	
+	public int getStopsforRoute(int route, Drawable draw, MyMapView mapView,ItemizedOverlayActivity curItemizedOverlay) {
+		Cursor cursor = myDataBase.rawQuery("SELECT _id,stop,direction,lat,lon,route FROM BusStops where(route='"+route+"') ORDER BY route",null);
 		//GeoPoint point;
 		if(!cursor.moveToFirst()) return -1;
 		int size = 0;
@@ -178,25 +221,5 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 		return size;
 	}
 
-	public String getTime(int route,String direction,String stopName) throws JSONException {
-		String nextTime = "[unknown]";
-		JSONArray time;
-		stopName = stopName.replace(" ","");
-		stopName = stopName.replace(".", "");
-		JSONObject json = MapViewActivity.connect("http://discovertransit.herokuapp.com/times/"+route+"/"+stopName+"/"+direction+".json");
-		if(json!=null) {
-			try {
-				json = (JSONObject) json.get("data");
-				time = json.getJSONArray("times");
-				if(time.length()>0)
-					nextTime = time.get(0).toString();
-				else
-					nextTime = "[unknown]";
-			} catch (JSONException e) {
-				nextTime ="[unknown]";
-			}
-		}
-		return nextTime;
-	}
 
 }

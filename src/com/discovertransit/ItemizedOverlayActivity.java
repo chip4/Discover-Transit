@@ -3,12 +3,9 @@ package com.discovertransit;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.json.JSONException;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.widget.Toast;
 
 import com.readystatesoftware.mapviewballoons.BalloonItemizedOverlay;
 
@@ -21,9 +18,9 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	private int routeNum;
 	private boolean isRouteDisplayed = false;
 	private RoutePathOverlay routeOverlay;
-	private int tempIndex;
 	private List<Integer> colorList;
 	private boolean isStop;
+	private DisplayArrivalTimeTask showArrivalTime;
 
 	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum) {
 		super(boundCenterBottom(defaultMarker), mapView);
@@ -42,25 +39,12 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 		colorList.add(Color.GREEN);
 		colorList.add(Color.MAGENTA);
 		colorList.add(Color.GREEN);
+		showArrivalTime = new DisplayArrivalTimeTask(mContext);
 	}
 
 	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum,boolean isStop) {
-		super(boundCenterBottom(defaultMarker), mapView);
-		this.routeNum = routeNum;
-		this.mapView = mapView;
-		mContext = mapView.getContext();
+		this(defaultMarker, mapView,routeNum);
 		this.isStop = isStop;
-		colorList = new ArrayList<Integer>();
-		colorList.add(Color.RED);
-		colorList.add(Color.MAGENTA);
-		colorList.add(Color.GREEN);
-		colorList.add(Color.CYAN);
-		colorList.add(Color.BLUE);
-		colorList.add(Color.RED);
-		colorList.add(Color.RED);
-		colorList.add(Color.GREEN);
-		colorList.add(Color.MAGENTA);
-		colorList.add(Color.GREEN);
 	}
 
 	@Override
@@ -100,14 +84,7 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	@Override
 	protected void onBalloonOpen(int index) {
 		if(isStop) {
-			this.tempIndex = index;
-			try {
-				Toast.makeText(mContext, "Next Bus Arrives: " + getItem(tempIndex).getTime(),
-						Toast.LENGTH_LONG).show();
-			} catch (JSONException e) {
-				Toast.makeText(mContext, "Next Bus Arrives: [Unknown]",
-						Toast.LENGTH_LONG).show();
-			}
+			showArrivalTime.execute(getItem(index).getStopURL());
 		}
 	}
 
@@ -125,13 +102,9 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 			Route route = Route.populateRoute(routeNum,mapView);
 			routeOverlay = new RoutePathOverlay(route.getPathCoords(),colorList.get(routeNum%10));
 			mapView.getOverlays().add(routeOverlay);
-			try {
-				mapView.getDbHelper().getStopsforRoute(routeNum, draw, mapView, this);
-				this.callPopulate();
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
+			mapView.getDbHelper().getStopsforRoute(routeNum, draw, mapView, this);
+			this.callPopulate();
 			isRouteDisplayed = true;
 		}
 		else {

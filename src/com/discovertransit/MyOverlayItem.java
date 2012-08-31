@@ -68,6 +68,12 @@ public class MyOverlayItem extends OverlayItem{
 	public void setTitle(String title) {
 		this.title = title;
 	}
+	
+	public String getStopURL() {
+		if(stopName==null || direction==null)
+			return null;
+		return "http://discovertransit.herokuapp.com/times/"+routeNum+"/"+stopName.replace(" ","").replace(".", "")+"/"+direction+".json";
+	}
 
 	public String getTime() throws JSONException {
 

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -44,7 +45,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	MyMapView mapView;
 	List<Overlay> mapOverlays;
 	ItemizedOverlayActivity itemizedOverlay,itemizedOverlay2,itemizedOverlay3,itemizedOverlay4;
-	List<ItemizedOverlayActivity> itemizedOverlayList;
+	Map<Integer,ItemizedOverlayActivity> itemizedOverlayMap;
 	int index = 0;
 
 	//Used for location
@@ -74,7 +75,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		setContentView(R.layout.main);
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 		StrictMode.setThreadPolicy(policy);
-        new ServerWakeup().execute();
+		new ServerWakeup().execute();
 		mapView = (MyMapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
 		mapView.setSatellite(false);
@@ -109,11 +110,16 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		});
 		mapView.setOnChangeListener(new MapViewChangeListener());
 		Location location = myLocationManager.getLastKnownLocation(bestprovider);
-		GeoPoint p = new GeoPoint((int)(location.getLatitude()*1E6),(int)(location.getLongitude()*1E6));
+		GeoPoint p;
+		try {
+			p = new GeoPoint((int)(location.getLatitude()*1E6),(int)(location.getLongitude()*1E6));
+		} catch(Exception e) {
+			p = new GeoPoint(33760204,-84386222);
+		}
 		myMapController.animateTo(p);
 		myMapController.setZoom(17);
 		myMapController.setCenter(p);
-		
+
 		Runnable waitForMap = new Runnable() {
 			public void run() {
 				if(mapView.getWidth()==0||mapView.getHeight()== 0) {
@@ -147,24 +153,31 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 				else if (!newCenter.equals(oldCenter)&&newZoom>14)
 				{
 					// Map Pan Detected
-
+					final int newZoomF = newZoom;
+					final int oldZoomF = oldZoom;
 					Runnable updateMap = new Runnable() {
 						public void run() {
-							itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
-							minLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
-							maxLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
-							maxLat = (minLat - mapView.getLatitudeSpan()/1E6);
-							minLon = (maxLon + mapView.getLongitudeSpan()/1E6);
-							try {
-								dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,drawableList,mapView, itemizedOverlayList);
-							} catch (JSONException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+							//itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
+							maxLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
+							minLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
+							minLat = (maxLat - mapView.getLatitudeSpan()/1E6);
+							maxLon = (minLon + mapView.getLongitudeSpan()/1E6);
+							if(newZoomF > 18)  {
+								if(oldZoomF<19)
+									mapView.getOverlays().clear();
+								itemizedOverlayMap = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,true,drawableList,mapView);
+								dbHelper.addOverlappingStopsNearby(minLat,minLon,maxLat,maxLon,drawableList,mapView,itemizedOverlayMap);
 							}
-							for(int i = 0; i<itemizedOverlayList.size();i++) {
-								itemizedOverlayList.get(i).callPopulate();
-								mapView.getOverlays().add(itemizedOverlayList.get(i));
+							else {
+								itemizedOverlayMap = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,false,drawableList,mapView);								
 							}
+							if(itemizedOverlayMap!=null) {
+								for(ItemizedOverlayActivity item: itemizedOverlayMap.values()) {
+									item.callPopulate();
+									mapView.getOverlays().add(item);
+								}
+							}
+							
 							mapView.invalidate();
 						}
 
@@ -180,25 +193,21 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		}
 	}
 
-	
+
 
 	public void doEverything() throws IOException {
-		itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
-		double minLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
-		double maxLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
-		double maxLat = (minLat - mapView.getLatitudeSpan()/1E6);
-		double minLon = (maxLon + mapView.getLongitudeSpan()/1E6);
+		maxLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
+		minLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
+		minLat = (maxLat - mapView.getLatitudeSpan()/1E6);
+		maxLon = (minLon + mapView.getLongitudeSpan()/1E6);
 		drawableList = getDrawableList();
-		int size = 0;
-		try {
-			size = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,drawableList,mapView,itemizedOverlayList);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		for(int i = 0; i<size;i++) {
-			itemizedOverlayList.get(i).callPopulate();
-			mapView.getOverlays().add(itemizedOverlayList.get(i));
+		itemizedOverlayMap = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,false,drawableList,mapView);
+		
+		if(itemizedOverlayMap!=null) {
+			for(ItemizedOverlayActivity item: itemizedOverlayMap.values()) {
+				item.callPopulate();
+				mapView.getOverlays().add(item);
+			}
 		}
 		mapView.forceRefresh();
 	}
@@ -323,7 +332,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 		if(list!=null) {
 			for(int i = 0; i<list.size();i++)
-					overlay.addOverlay(list.get(i));
+				overlay.addOverlay(list.get(i));
 		}
 		overlay.callPopulate();
 
@@ -353,29 +362,27 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		return list;
 
 	}
-	
 
-    @SuppressWarnings("unused")
+
 	private class ServerWakeup extends AsyncTask<Void, Void, Void> {
-        @Override
+		@Override
 		protected Void doInBackground(Void... params) {
-        	
-        	HttpClient httpclient = new DefaultHttpClient();
 
-    		// Prepare a request object
-    		HttpGet httpget = new HttpGet("http://discovertransit.herokuapp.com/"); 
+			HttpClient httpclient = new DefaultHttpClient();
 
-    		// Execute the request
-    		HttpResponse response;
-    		try {
-    			response = httpclient.execute(httpget);
+			// Prepare a request object
+			HttpGet httpget = new HttpGet("http://discovertransit.herokuapp.com/"); 
 
-    			} catch(Exception e) {
-    				e.printStackTrace();
-    			}
+			// Execute the request
+			try {
+				httpclient.execute(httpget);
+
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 			return null;
 		}
-    }
+	}
 
 
 	public void onLocationChanged(Location arg0) {
