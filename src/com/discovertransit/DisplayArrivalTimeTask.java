@@ -1,6 +1,7 @@
 package com.discovertransit;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -18,24 +19,30 @@ public class DisplayArrivalTimeTask extends AsyncTask<String,Void,String>{
 		if(input==null || input[0]==null)
 			return null;
 		String stopURL = input[0];
-		String time = null;
+		String time = "[unknown]";
+		String output = null;
 		try {
-			JSONArray times = APIHelper.getJSONObject(stopURL).getJSONArray("times");
+			JSONObject stopObject = APIHelper.getJSONObject(stopURL);
+			if(!stopObject.has("times"))
+				return null;
+			JSONArray times = stopObject.getJSONArray("times");
 			if(times.length()>0) {
 				time = times.get(0).toString();
 			}
+			output = "Next Bus Arrives: " + time;
 		} catch (Exception e) {
-			Toast.makeText(context, "Unable to retrieve arrival time. Please try again.", Toast.LENGTH_LONG).show();
+			e.printStackTrace();
+			output = null;
 		}
-		return time;
+		return output;
 	}
 	protected void onPreExecute() {
 		Toast.makeText(context, "Retrieving Arrival Time ...", Toast.LENGTH_SHORT).show();
 	}
-	protected void onPostExecute(String time) {
-		if(time==null)
-			time = "[unknown]";
-		Toast.makeText(context, "Next Bus Arrives: " + time, Toast.LENGTH_LONG).show();
+	protected void onPostExecute(String value) {
+		if(value==null)
+			value = "Unable to retrieve arrival time.";
+		Toast.makeText(context, value, Toast.LENGTH_LONG).show();
 	}
 
 }
