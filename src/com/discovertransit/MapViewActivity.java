@@ -153,7 +153,12 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 				else if (!newCenter.equals(oldCenter)&&newZoom>14)
 				{
 					// Map Pan Detected
-					final int newZoomF = newZoom;
+					if(newZoom>18 && oldZoom<19) {
+						mapView.getOverlays().clear();
+					}
+					new UpdateMapTask().execute(newZoom>18);
+					
+					/*final int newZoomF = newZoom;
 					final int oldZoomF = oldZoom;
 					Runnable updateMap = new Runnable() {
 						public void run() {
@@ -166,7 +171,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 								if(oldZoomF<19)
 									mapView.getOverlays().clear();
 								itemizedOverlayMap = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,true,drawableList,mapView);
-								dbHelper.addOverlappingStopsNearby(minLat,minLon,maxLat,maxLon,drawableList,mapView,itemizedOverlayMap);
+								//dbHelper.addOverlappingStopsNearby(minLat,minLon,maxLat,maxLon,drawableList,mapView,itemizedOverlayMap);
 							}
 							else {
 								itemizedOverlayMap = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,false,drawableList,mapView);								
@@ -182,8 +187,10 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 						}
 
 					};
-					runOnUiThread(updateMap);
+					runOnUiThread(updateMap);*/
 					System.out.println("Map Pan Detected");
+					
+					
 				}
 				else if (newZoom != oldZoom)
 				{
@@ -193,6 +200,38 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		}
 	}
 
+	private class UpdateMapTask extends AsyncTask<Boolean,Void,Map<Integer,ItemizedOverlayActivity>> {
+		
+		private double minLat,maxLat,minLon,maxLon;
+		
+		@Override
+		protected void onPreExecute() {
+			maxLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
+			minLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
+			minLat = (maxLat - mapView.getLatitudeSpan()/1E6);
+			maxLon = (minLon + mapView.getLongitudeSpan()/1E6);
+		}
+		
+		@Override
+		protected Map<Integer,ItemizedOverlayActivity> doInBackground(Boolean... params) {
+			if(params==null || params[0]==null)
+				return null;
+			
+			return dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,params[0],drawableList,mapView);
+		}
+		
+		@Override
+		protected void onPostExecute(Map<Integer,ItemizedOverlayActivity> itemizedOverlayMap) {
+			if(itemizedOverlayMap!=null) {
+				for(ItemizedOverlayActivity item: itemizedOverlayMap.values()) {
+					item.callPopulate();
+					mapView.getOverlays().add(item);
+				}
+			}
+			mapView.invalidate();
+		}
+		
+	}
 
 
 	public void doEverything() throws IOException {
@@ -320,7 +359,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	}
 
 
-	public static ItemizedOverlayActivity drawBuses(int route, Drawable drawable, MyMapView mapView) {
+	/*public static ItemizedOverlayActivity drawBuses(int route, Drawable drawable, MyMapView mapView) {
 		ItemizedOverlayActivity overlay = new ItemizedOverlayActivity(drawable, mapView,route,false);
 		ArrayList<MyOverlayItem> list = null;
 		try {
@@ -361,7 +400,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		}
 		return list;
 
-	}
+	}*/
 
 
 	private class ServerWakeup extends AsyncTask<Void, Void, Void> {

@@ -20,13 +20,14 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	private RoutePathOverlay routeOverlay;
 	private List<Integer> colorList;
 	private boolean isStop;
-	private DisplayArrivalTimeTask showArrivalTime;
+	private Route route;
 
 	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum) {
 		super(boundCenterBottom(defaultMarker), mapView);
 		this.routeNum = routeNum;
 		this.mapView = mapView;
 		mContext = mapView.getContext();
+		this.route = new Route(routeNum, mContext);
 		isStop = true;
 		colorList = new ArrayList<Integer>();
 		colorList.add(Color.RED);
@@ -39,7 +40,6 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 		colorList.add(Color.GREEN);
 		colorList.add(Color.MAGENTA);
 		colorList.add(Color.GREEN);
-		showArrivalTime = new DisplayArrivalTimeTask(mContext);
 	}
 
 	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum,boolean isStop) {
@@ -84,7 +84,8 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	@Override
 	protected void onBalloonOpen(int index) {
 		if(isStop) {
-			showArrivalTime.execute(getItem(index).getStopURL());
+			DisplayArrivalTimeTask showArrivalTime = new DisplayArrivalTimeTask(mContext);
+			showArrivalTime.execute(getItem(index).getRouteObject().getURL());
 		}
 	}
 
@@ -97,9 +98,10 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 			mapView.getOverlays().clear();
 			mapView.postInvalidate();
 			mapView.getOverlays().add(this);
-
-			mapView.getOverlays().add(MapViewActivity.drawBuses(routeNum,mapView.getResources().getDrawable(R.drawable.bus),mapView));
-			Route route = Route.populateRoute(routeNum,mapView);
+			ItemizedOverlayActivity busOverlayActivity = new ItemizedOverlayActivity(mapView.getResources().getDrawable(R.drawable.bus), mapView,routeNum,false);
+			DisplayBusLocationsTask displayBuses = new DisplayBusLocationsTask(busOverlayActivity,mapView);
+			displayBuses.execute(route.getURL());
+			
 			routeOverlay = new RoutePathOverlay(route.getPathCoords(),colorList.get(routeNum%10));
 			mapView.getOverlays().add(routeOverlay);
 
@@ -113,7 +115,6 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 			mapView.getOverlays().clear();
 			mapView.postInvalidate();
 			mapView.setForceRefresh(true);
-
 		}
 		return true;
 	}

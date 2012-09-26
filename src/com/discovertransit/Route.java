@@ -5,22 +5,25 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.AssetManager;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 
-public class Route extends Activity{
+public class Route{
 	private int routeNum;
+	private Context context;
 	private ArrayList<Bus> buses;
 	private ArrayList<ArrayList<GeoPoint>> pathCoords;
 	private String name;
 	public static final Map<Integer, String> ROUTE_NAMES = new HashMap<Integer, String>();
 	
-	public Route(String name,ArrayList<Bus> buses, ArrayList<ArrayList<GeoPoint>> pathCoords) {
+	/*public Route(String name,ArrayList<Bus> buses, ArrayList<ArrayList<GeoPoint>> pathCoords) {
 		this.buses = buses;
 		this.pathCoords = pathCoords;
 		this.name = name;
@@ -33,29 +36,15 @@ public class Route extends Activity{
 	
 	public Route(String name) {
 		this.name = name;
-	}
-	public Route(){
+	}*/
+	public Route(int routeNum, Context context){
+		this.routeNum = routeNum;
+		this.context = context;
+		this.pathCoords = findRouteCoords(routeNum,context);
 	}
 	
-	
-	public ArrayList<Bus> getBuses() {
-		return buses;
-	}
-	public void addBus(Bus bus) {
-		this.buses.add(bus);
-	}
 	public ArrayList<ArrayList<GeoPoint>> getPathCoords() {
 		return pathCoords;
-	}
-	@SuppressWarnings("unchecked")
-	public void setPathCoords(ArrayList<ArrayList<GeoPoint>> coords) {
-		this.pathCoords = (ArrayList<ArrayList<GeoPoint>>) coords.clone();
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
 	}
 	public int getRouteNum() {
 		return routeNum;
@@ -63,17 +52,14 @@ public class Route extends Activity{
 		this.routeNum = routeNum;
 	}
 	
-	public static Route populateRoute(int routeNum,MapView mapView){
-		Route ret = new Route();
-		ret.setRouteNum(routeNum);
+	public String getURL() {
+		return "http://discovertransit.herokuapp.com/bus/"+routeNum+".json";
+	}
+	
+	private ArrayList<ArrayList<GeoPoint>> findRouteCoords(int routeNum,Context context){
 		ArrayList<ArrayList<GeoPoint>> finalCoords = new ArrayList<ArrayList<GeoPoint>>();
 		try {
-			AssetManager am = mapView.getContext().getAssets();
-	        String assets[] = null;
-			assets = am.list( "" );
-            for(String asset : assets) {
-                System.out.println(asset);
-            }
+			AssetManager am = context.getAssets();
 			
 			InputStream is = am.open("routecoords/"+routeNum+".txt");
 			BufferedReader file = new BufferedReader(new InputStreamReader(is));
@@ -99,12 +85,10 @@ public class Route extends Activity{
 					
 				}
 			}
-			ret.setPathCoords(finalCoords);
-			return ret;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return finalCoords;
 	}
 	
 	

@@ -2,29 +2,45 @@ package com.discovertransit;
 
 import com.google.android.maps.GeoPoint;
 
-public class Bus {
-	private GeoPoint location;
-	private char direction;
-	private String nextStop;
+public class Bus implements RouteObjectInterface {
+	private int route;
+	private String title;
+	private String snippet;
+	private String direction;
+	private GeoPoint point;
 	
-	public GeoPoint getLocation() {
-		return location;
-	}
-	public void setLocation(GeoPoint location) {
-		this.location = location;
-	}
-	public char getDirection() {
-		return direction;
-	}
-	public void setDirection(char direction) {
+	public Bus(GeoPoint location, String title, String snippet, int route, String direction) {
+		this.route = route;
+		this.snippet = snippet;
+		this.title = title;
 		this.direction = direction;
 	}
-	public String getNextStop() {
-		return nextStop;
+
+	public GeoPoint getPoint() {
+		return point;
 	}
-	public void setNextStop(String nextStop) {
-		this.nextStop = nextStop;
+
+	public String getTitle() {
+		return title;
 	}
+
+	public String getSnippet() {
+		return snippet;
+	}
+
+	public String getURL() {
+		return null;
+	}
+
+	public int getRoute() {
+		return route;
+	}
+
+	public String getDirection() {
+		return direction;
+	}
+	
+	
 	
 	
 }

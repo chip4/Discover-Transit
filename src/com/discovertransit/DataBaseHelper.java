@@ -148,14 +148,17 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			route = cursor.getInt(5);
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			Stop stop = new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir);
 			if(!mMap.containsKey(route))
 			{
+				/*if(curItemizedOverlay!=null) {
+					curItemizedOverlay.callPopulate();
+				}*/
 				curItemizedOverlay = new ItemizedOverlayActivity(draw.get(route%10),mapView,route);
 				mMap.put(route, curItemizedOverlay);
 
 			}
-			curItemizedOverlay.addOverlay(stop.getOverlay());
+			MyOverlayItem stopOverlayItem = new MyOverlayItem(new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir));
+			curItemizedOverlay.addOverlay(stopOverlayItem);
 			cursor.moveToNext();
 		}
 		return mMap;
@@ -182,12 +185,11 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			String stopName = cursor.getString(4);
 			String dir = cursor.getString(5);
 			GeoPoint point = pointNearby(cursor.getDouble(1),cursor.getDouble(2),7,delta);
-			Stop stop = new Stop(point,"Route "+curRoute+": "+dir,stopName,curRoute,stopName,dir);
 			if(!mMap.containsKey(curRoute)) {
 				mMap.put(curRoute, new ItemizedOverlayActivity(draw.get(curRoute%10),mapView,curRoute));
 			}
-			
-			mMap.get(curRoute).addOverlay(stop.getOverlay());
+			MyOverlayItem stopOverlayItem = new MyOverlayItem(new Stop(point,"Route "+curRoute+": "+dir,stopName,curRoute,stopName,dir));
+			mMap.get(curRoute).addOverlay(stopOverlayItem);
 			delta+=Math.PI*2/total;
 			cur--;
 			cursor.moveToNext();
@@ -214,8 +216,8 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			Stop stop = new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir);
-			curItemizedOverlay.addOverlay(stop.getOverlay());
+			MyOverlayItem stopOverlayItem = new MyOverlayItem(new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir));
+			curItemizedOverlay.addOverlay(stopOverlayItem);
 			cursor.moveToNext();
 		}
 		return size;
