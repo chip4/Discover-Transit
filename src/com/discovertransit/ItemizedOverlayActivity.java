@@ -1,6 +1,7 @@
 package com.discovertransit;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import android.content.Context;
@@ -59,6 +60,10 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 
 	public void addOverlay(MyOverlayItem overlay) {
 		mOverlays.add(overlay);
+	}
+	
+	public void addAllOverlays(Collection<MyOverlayItem> overlayItems) {
+		mOverlays.addAll(overlayItems);
 	}
 
 	public void callPopulate() {

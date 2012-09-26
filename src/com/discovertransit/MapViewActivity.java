@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.SparseArray;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -200,7 +202,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		}
 	}
 
-	private class UpdateMapTask extends AsyncTask<Boolean,Void,Map<Integer,ItemizedOverlayActivity>> {
+	/*private class UpdateMapTask extends AsyncTask<Boolean,Void,Map<Integer,ItemizedOverlayActivity>> {
 		
 		private double minLat,maxLat,minLon,maxLon;
 		
@@ -231,7 +233,47 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 			mapView.invalidate();
 		}
 		
+	}*/
+	
+	private class UpdateMapTask extends AsyncTask<Boolean,Void,SparseArray<Collection<MyOverlayItem>>> {
+		
+		private double minLat,maxLat,minLon,maxLon;
+		
+		@Override
+		protected void onPreExecute() {
+			maxLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
+			minLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
+			minLat = (maxLat - mapView.getLatitudeSpan()/1E6);
+			maxLon = (minLon + mapView.getLongitudeSpan()/1E6);
+		}
+		
+		@Override
+		protected SparseArray<Collection<MyOverlayItem>> doInBackground(Boolean... params) {
+			if(params==null || params[0]==null)
+				return null;
+			
+			return dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,params[0]);
+		}
+		
+		@Override
+		protected void onPostExecute(SparseArray<Collection<MyOverlayItem>> sparseArray) {
+			if(sparseArray!=null) {
+				for(int i=0; i<sparseArray.size(); i++) {
+					int route = sparseArray.keyAt(i);
+					
+					ItemizedOverlayActivity itemizedOverlayActivity = new ItemizedOverlayActivity(drawableList.get(route%10),mapView,route);
+					
+					itemizedOverlayActivity.addAllOverlays(sparseArray.valueAt(i));
+					itemizedOverlayActivity.callPopulate();
+					
+					mapView.getOverlays().add(itemizedOverlayActivity);
+				}
+			}
+			mapView.invalidate();
+		}
+		
 	}
+	
 
 
 	public void doEverything() throws IOException {

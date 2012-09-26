@@ -4,6 +4,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,8 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.drawable.Drawable;
+import android.util.SparseArray;
+import android.util.SparseIntArray;
 
 import com.google.android.maps.GeoPoint;
 
@@ -162,6 +166,36 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			cursor.moveToNext();
 		}
 		return mMap;
+	}
+	
+	public SparseArray<Collection<MyOverlayItem>> getStopsNearby(double minLat, double minLon, double maxLat, double maxLon,boolean limit) {
+		String amount = "";
+		if(limit)
+			amount = "AND amount<2";
+		String query = "SELECT _id,stop,direction,lat,lon,route,amount FROM BusStops WHERE (lat BETWEEN '"+minLat+"' AND '"+maxLat+
+				"' AND lon BETWEEN '"+minLon+"' AND '"+maxLon+"'"+amount+") ORDER BY route";
+		System.out.println(query);
+		Cursor cursor = myDataBase.rawQuery(query,null);
+		
+		SparseArray<Collection<MyOverlayItem>> sparseArray = new SparseArray<Collection<MyOverlayItem>>();
+		if(!cursor.moveToFirst()) return null;
+		int route = cursor.getInt(5);
+		Collection<MyOverlayItem> collection = new ArrayList<MyOverlayItem>();
+		while(!cursor.isAfterLast()) {
+			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
+			route = cursor.getInt(5);
+			String stopName = cursor.getString(1);
+			String dir = cursor.getString(2);
+			if(sparseArray.get(route)==null)
+			{
+				collection = new ArrayList<MyOverlayItem>();
+				sparseArray.put(route, collection);
+			}
+			MyOverlayItem stopOverlayItem = new MyOverlayItem(new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir));
+			collection.add(stopOverlayItem);
+			cursor.moveToNext();
+		}
+		return sparseArray;
 	}
 	
 	

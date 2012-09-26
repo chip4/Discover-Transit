@@ -4,26 +4,20 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
 
 import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapView;
 
 public class Route{
 	private int routeNum;
-	private Context context;
-	private ArrayList<Bus> buses;
 	private ArrayList<ArrayList<GeoPoint>> pathCoords;
+	/*private Context context;
+	private ArrayList<Bus> buses;
 	private String name;
 	public static final Map<Integer, String> ROUTE_NAMES = new HashMap<Integer, String>();
 	
-	/*public Route(String name,ArrayList<Bus> buses, ArrayList<ArrayList<GeoPoint>> pathCoords) {
+	public Route(String name,ArrayList<Bus> buses, ArrayList<ArrayList<GeoPoint>> pathCoords) {
 		this.buses = buses;
 		this.pathCoords = pathCoords;
 		this.name = name;
@@ -39,7 +33,6 @@ public class Route{
 	}*/
 	public Route(int routeNum, Context context){
 		this.routeNum = routeNum;
-		this.context = context;
 		this.pathCoords = findRouteCoords(routeNum,context);
 	}
 	
@@ -94,7 +87,7 @@ public class Route{
 	
 	
 	
-	static {
+	/*static {
 		ROUTE_NAMES.put(1, "Centennial Oly. Park/Coronet");
 		ROUTE_NAMES.put(2, "Ponce de Leon  Ave/Moreland");
 		ROUTE_NAMES.put(3, "Martin Luther King Jr.");
@@ -186,6 +179,6 @@ public class Route{
 		ROUTE_NAMES.put(193, "Sylvan Hills");
 		ROUTE_NAMES.put(520, "Memorial Drive BRT Limited");
 		ROUTE_NAMES.put(521, "Memorial Drive BRT Express");
-	}
+	}*/
 
 }
