@@ -30,7 +30,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.SparseArray;
+
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.widget.LinearLayout;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.google.android.maps.GeoPoint;
@@ -484,5 +488,14 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.menu, menu);
+	    SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+	    
+	    return super.onCreateOptionsMenu(menu);
+	    //return true;
 	}
 }
