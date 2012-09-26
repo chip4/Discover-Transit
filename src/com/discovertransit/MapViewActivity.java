@@ -448,10 +448,9 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	}
 	
 	public boolean onCreateOptionsMenu(Menu menu) {
-		
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.menu, menu);
-	    SearchView searchView = (SearchView) menu.findItem(R.id.new_game).getActionView();
+	    SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
 	    
 	    return super.onCreateOptionsMenu(menu);
 	    //return true;

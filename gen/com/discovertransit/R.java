@@ -44,7 +44,7 @@ public final class R {
         public static final int help=0x7f040009;
         public static final int mainlayout=0x7f040006;
         public static final int mapview=0x7f040007;
-        public static final int new_game=0x7f040008;
+        public static final int menu_search=0x7f040008;
     }
     public static final class layout {
         public static final int balloon_overlay=0x7f030000;
