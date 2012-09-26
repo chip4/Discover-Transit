@@ -23,6 +23,7 @@ public class Stop implements RouteObjectInterface{
 	public String getURL() {
 		if(stopName==null || direction==null)
 			return null;
+		System.out.println("http://discovertransit.herokuapp.com/times/"+route+"/"+stopName.replace(" ","").replace(".", "")+"/"+direction+".json");
 		return "http://discovertransit.herokuapp.com/times/"+route+"/"+stopName.replace(" ","").replace(".", "")+"/"+direction+".json";
 	}
 
