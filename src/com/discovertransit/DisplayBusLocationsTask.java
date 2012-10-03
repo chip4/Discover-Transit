@@ -9,15 +9,19 @@ import org.json.JSONArray;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 
 public class DisplayBusLocationsTask extends AsyncTask<String,Void,List<MyOverlayItem>> {
 
-	private ItemizedOverlayActivity busOverlayActivity;
+	private ItemizedOverlayActivity itemizedOverlayActivity;
 	private MapView mapView;
-	public DisplayBusLocationsTask(ItemizedOverlayActivity busOverlayActivity,MapView mapView) {
-		this.busOverlayActivity = busOverlayActivity;
+	private Drawable drawable;
+	
+	public DisplayBusLocationsTask(ItemizedOverlayActivity itemizedOverlayActivity,MapView mapView, Drawable drawable) {
+		this.itemizedOverlayActivity = itemizedOverlayActivity;
 		this.mapView = mapView;
+		this.drawable = drawable;
 	}
 	@Override
 	protected List<MyOverlayItem> doInBackground(String... input) {
@@ -37,7 +41,7 @@ public class DisplayBusLocationsTask extends AsyncTask<String,Void,List<MyOverla
 				GeoPoint point = new GeoPoint((int)(busData.getDouble("lat")*1E6),(int)(busData.getDouble("lon")*1E6));
 				if(busData.has("next_stop"))
 					nextStop = busData.getString("next_stop");
-				MyOverlayItem overlayitem = new MyOverlayItem(new Bus(point, "Route: " + busData.getInt("route"), busData.getString("direction")+ "--Next Major stop: "+ nextStop,busData.getInt("route"),busData.getString("direction")));
+				MyOverlayItem overlayitem = new MyOverlayItem(drawable,new Bus(point, "Route: " + busData.getInt("route"), busData.getString("direction")+ "--Next Major stop: "+ nextStop,busData.getInt("route"),busData.getString("direction")));
 				busList.add(overlayitem);
 
 			}
@@ -48,16 +52,14 @@ public class DisplayBusLocationsTask extends AsyncTask<String,Void,List<MyOverla
 	}
 
 	protected void onPostExecute(List<MyOverlayItem> busList) {
-		if(busList==null || busOverlayActivity==null || mapView==null) {
+		if(busList==null || itemizedOverlayActivity==null || mapView==null) {
 			return;
 		}
 		
-		for(int i = 0; i<busList.size();i++)
-			busOverlayActivity.addOverlay(busList.get(i));
-
+		itemizedOverlayActivity.addAllOverlays(busList);
 		System.out.println("Size: "+busList.size());
-		busOverlayActivity.callPopulate();
-		mapView.getOverlays().add(busOverlayActivity);
+		itemizedOverlayActivity.callPopulate();
+		mapView.getOverlays().add(itemizedOverlayActivity);
 		mapView.invalidate();
 	}
 

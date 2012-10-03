@@ -74,4 +74,12 @@ public class Stop implements RouteObjectInterface{
 	public void setRoute(int route) {
 		this.route = route;
 	}
+
+	public boolean isStop() {
+		return true;
+	}
+
+	public boolean isBus() {
+		return false;
+	}
 }

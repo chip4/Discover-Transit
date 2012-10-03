@@ -40,6 +40,7 @@ public class MyMapView extends MapView
     private DataBaseHelper dbHelper;
 	private boolean refresh = false;
 	private ArrayList<Drawable> drawableList;
+	private RoutePathOverlay routeOverlay;
  
     // ------------------------------------------------------------------------
     // CONSTRUCTORS
@@ -178,6 +179,20 @@ public class MyMapView extends MapView
 		drawableList.add(this.getResources().getDrawable(R.drawable.m9));
 		drawableList.add(this.getResources().getDrawable(R.drawable.m10));
 		return drawableList;
+	}
+	
+	public boolean addRoutePathOverlay(RoutePathOverlay routeOverlay) {
+		this.routeOverlay = routeOverlay;
+		return this.getOverlays().add(routeOverlay);
+	}
+	
+	public boolean removeRoutePathOverlay() {
+		if(this.routeOverlay==null) {
+			return false;
+		}
+		boolean retVal = this.getOverlays().remove(routeOverlay);
+		routeOverlay = null;
+		return retVal;
 	}
  
 }

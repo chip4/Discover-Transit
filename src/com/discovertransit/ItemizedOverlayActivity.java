@@ -16,20 +16,13 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	private ArrayList<MyOverlayItem> mOverlays = new ArrayList<MyOverlayItem>();
 	private Context mContext;
 	private MyMapView mapView;
-	private int routeNum;
 	private boolean isRouteDisplayed = false;
-	private RoutePathOverlay routeOverlay;
 	private List<Integer> colorList;
-	private boolean isStop;
-	private Route route;
 
-	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum) {
+	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView) {
 		super(boundCenterBottom(defaultMarker), mapView);
-		this.routeNum = routeNum;
 		this.mapView = mapView;
 		mContext = mapView.getContext();
-		this.route = new Route(routeNum, mContext);
-		isStop = true;
 		colorList = new ArrayList<Integer>();
 		colorList.add(Color.RED);
 		colorList.add(Color.MAGENTA);
@@ -41,11 +34,6 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 		colorList.add(Color.GREEN);
 		colorList.add(Color.MAGENTA);
 		colorList.add(Color.GREEN);
-	}
-
-	public ItemizedOverlayActivity(Drawable defaultMarker, MyMapView mapView,int routeNum,boolean isStop) {
-		this(defaultMarker, mapView,routeNum);
-		this.isStop = isStop;
 	}
 
 	@Override
@@ -65,6 +53,10 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	public void addAllOverlays(Collection<MyOverlayItem> overlayItems) {
 		mOverlays.addAll(overlayItems);
 	}
+	
+	public void removeAllOverlays() {
+		mOverlays.clear();
+	}
 
 	public void callPopulate() {
 		populate();
@@ -78,17 +70,10 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 		this.mOverlays = mOverlays;
 	}
 
-	public int getRouteNum() {
-		return routeNum;
-	}
-
-	public void setRouteNum(int routeNum) {
-		this.routeNum = routeNum;
-	}
-
 	@Override
 	protected void onBalloonOpen(int index) {
-		if(isStop) {
+		MyOverlayItem currentOverlayItem = mOverlays.get(index);
+		if(currentOverlayItem!=null && currentOverlayItem.getRouteObject().isStop()) {
 			DisplayArrivalTimeTask showArrivalTime = new DisplayArrivalTimeTask(mContext);
 			showArrivalTime.execute(getItem(index).getRouteObject().getURL());
 		}
@@ -98,26 +83,32 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	protected boolean onBalloonTap(int index, MyOverlayItem item) {
 
 		if(!isRouteDisplayed) {
+			MyOverlayItem currentOverlayItem = mOverlays.get(index);
+			int routeNum = currentOverlayItem.getRouteObject().getRoute();
+			Route route = new Route(routeNum,mContext);
 			Drawable draw = mapView.getDrawableList().get(routeNum%10);
 			mapView.setRouteDisplayed(true);
-			mapView.getOverlays().clear();
-			mapView.postInvalidate();
-			mapView.getOverlays().add(this);
-			ItemizedOverlayActivity busOverlayActivity = new ItemizedOverlayActivity(mapView.getResources().getDrawable(R.drawable.bus), mapView,routeNum,false);
-			DisplayBusLocationsTask displayBuses = new DisplayBusLocationsTask(busOverlayActivity,mapView);
+			this.removeAllOverlays();
+			this.callPopulate();
+			setLastFocusedIndex(-1);
+			DisplayBusLocationsTask displayBuses = new DisplayBusLocationsTask(this,mapView,mapView.getResources().getDrawable(R.drawable.bus));
 			displayBuses.execute(route.getURL());
 			
-			routeOverlay = new RoutePathOverlay(route.getPathCoords(),colorList.get(routeNum%10));
-			mapView.getOverlays().add(routeOverlay);
+			mapView.addRoutePathOverlay(new RoutePathOverlay(route.getPathCoords(),colorList.get(routeNum%10)));
 
-			mapView.getDbHelper().getStopsforRoute(routeNum, draw, mapView, this);
+			Collection<MyOverlayItem> routeStops = mapView.getDbHelper().getStopsforRoute(routeNum, draw);
+			if(routeStops==null) return false;
+			this.addAllOverlays(routeStops);
 			this.callPopulate();
 			isRouteDisplayed = true;
+			mapView.postInvalidate();
 		}
 		else {
 			isRouteDisplayed = false;
 			mapView.setRouteDisplayed(false);
-			mapView.getOverlays().clear();
+			this.removeAllOverlays();
+			this.callPopulate();
+			mapView.removeRoutePathOverlay();
 			mapView.postInvalidate();
 			mapView.setForceRefresh(true);
 		}

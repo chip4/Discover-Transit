@@ -1,23 +1,13 @@
 package com.discovertransit;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.content.Context;
 import android.database.SQLException;
@@ -29,58 +19,41 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.util.SparseArray;
-
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
-import android.widget.TextView;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
-import com.google.android.maps.Overlay;
 
 public class MapViewActivity extends MapActivity implements LocationListener {
 
 	//Initial items
 	LinearLayout linearLayout;
 	MyMapView mapView;
-	List<Overlay> mapOverlays;
-	ItemizedOverlayActivity itemizedOverlay,itemizedOverlay2,itemizedOverlay3,itemizedOverlay4;
-	Map<Integer,ItemizedOverlayActivity> itemizedOverlayMap;
-	int index = 0;
-
+	ItemizedOverlayActivity itemizedOverlay;
+	
 	//Used for location
 	LocationManager myLocationManager;
 	LocationListener myLocationListener;
-	TextView myLongitude, myLatitude;
 	MapController myMapController;
-	GeoPoint point;
-	String bestprovider;
 	MyLocationOverlay myLocationOverlay;
 	Context context;
 	List<Drawable> drawableList;
 
 	//Database
 	DataBaseHelper dbHelper;
-	double minLon;
-	double minLat;
-	double maxLon;
-	double maxLat;
-	public int count=0;
-	public boolean doneUpdating = true;
-
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-		StrictMode.setThreadPolicy(policy);
+		
 		new ServerWakeup().execute();
 		mapView = (MyMapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
@@ -106,7 +79,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		myMapController = mapView.getController();
 		myLocationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
-		bestprovider = myLocationManager.getBestProvider(criteria, false);
+		String bestprovider = myLocationManager.getBestProvider(criteria, false);
 		myLocationOverlay.runOnFirstFix(new Runnable() {
 			public void run() {
 				myMapController.animateTo(myLocationOverlay.getMyLocation());
@@ -125,7 +98,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		myMapController.animateTo(p);
 		myMapController.setZoom(17);
 		myMapController.setCenter(p);
-
+		
 		Runnable waitForMap = new Runnable() {
 			public void run() {
 				if(mapView.getWidth()==0||mapView.getHeight()== 0) {
@@ -133,8 +106,11 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 				}
 				else {
 					try {
-						doEverything();
-					} catch (IOException e) {
+						drawableList = getDrawableList();
+						itemizedOverlay = new ItemizedOverlayActivity(drawableList.get(0),mapView);
+						mapView.getOverlays().add(itemizedOverlay);
+						new UpdateMapTask(itemizedOverlay).execute(false);
+					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
@@ -162,38 +138,8 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 					if(newZoom>18 && oldZoom<19) {
 						mapView.getOverlays().clear();
 					}
-					new UpdateMapTask().execute(newZoom>18);
+					new UpdateMapTask(itemizedOverlay).execute(newZoom>18);
 					
-					/*final int newZoomF = newZoom;
-					final int oldZoomF = oldZoom;
-					Runnable updateMap = new Runnable() {
-						public void run() {
-							//itemizedOverlayList = new ArrayList<ItemizedOverlayActivity>();
-							maxLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
-							minLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
-							minLat = (maxLat - mapView.getLatitudeSpan()/1E6);
-							maxLon = (minLon + mapView.getLongitudeSpan()/1E6);
-							if(newZoomF > 18)  {
-								if(oldZoomF<19)
-									mapView.getOverlays().clear();
-								itemizedOverlayMap = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,true,drawableList,mapView);
-								//dbHelper.addOverlappingStopsNearby(minLat,minLon,maxLat,maxLon,drawableList,mapView,itemizedOverlayMap);
-							}
-							else {
-								itemizedOverlayMap = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,false,drawableList,mapView);								
-							}
-							if(itemizedOverlayMap!=null) {
-								for(ItemizedOverlayActivity item: itemizedOverlayMap.values()) {
-									item.callPopulate();
-									mapView.getOverlays().add(item);
-								}
-							}
-							
-							mapView.invalidate();
-						}
-
-					};
-					runOnUiThread(updateMap);*/
 					System.out.println("Map Pan Detected");
 					
 					
@@ -206,110 +152,64 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		}
 	}
 
-	/*private class UpdateMapTask extends AsyncTask<Boolean,Void,Map<Integer,ItemizedOverlayActivity>> {
+	private class UpdateMapTask extends AsyncTask<Boolean,Void,Collection<MyOverlayItem>> {
 		
 		private double minLat,maxLat,minLon,maxLon;
+		private ItemizedOverlayActivity itemizedOverlayActivity;
+		
+		public UpdateMapTask(ItemizedOverlayActivity itemizedOverlayActivity) {
+			if(itemizedOverlayActivity==null)
+				itemizedOverlayActivity = new ItemizedOverlayActivity(drawableList.get(0),mapView);
+			this.itemizedOverlayActivity = itemizedOverlayActivity;
+		}
 		
 		@Override
 		protected void onPreExecute() {
+			double latSpan = mapView.getLatitudeSpan()/1E6;
+			double lonSpan = mapView.getLongitudeSpan()/1E6;
 			maxLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
 			minLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
-			minLat = (maxLat - mapView.getLatitudeSpan()/1E6);
-			maxLon = (minLon + mapView.getLongitudeSpan()/1E6);
+			minLat = (maxLat - 1.3*latSpan);
+			maxLon = (minLon + 1.3*lonSpan);
+			maxLat+=.3*latSpan;
+			minLon-=.3*lonSpan;
 		}
 		
 		@Override
-		protected Map<Integer,ItemizedOverlayActivity> doInBackground(Boolean... params) {
+		protected Collection<MyOverlayItem> doInBackground(Boolean... params) {
 			if(params==null || params[0]==null)
 				return null;
-			
-			return dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,params[0],drawableList,mapView);
+			Collection<MyOverlayItem> collection = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,params[0],drawableList);
+			return collection;
 		}
 		
 		@Override
-		protected void onPostExecute(Map<Integer,ItemizedOverlayActivity> itemizedOverlayMap) {
-			if(itemizedOverlayMap!=null) {
-				for(ItemizedOverlayActivity item: itemizedOverlayMap.values()) {
-					item.callPopulate();
-					mapView.getOverlays().add(item);
-				}
-			}
-			mapView.invalidate();
-		}
-		
-	}*/
-	
-	private class UpdateMapTask extends AsyncTask<Boolean,Void,SparseArray<Collection<MyOverlayItem>>> {
-		
-		private double minLat,maxLat,minLon,maxLon;
-		
-		@Override
-		protected void onPreExecute() {
-			maxLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
-			minLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
-			minLat = (maxLat - mapView.getLatitudeSpan()/1E6);
-			maxLon = (minLon + mapView.getLongitudeSpan()/1E6);
-		}
-		
-		@Override
-		protected SparseArray<Collection<MyOverlayItem>> doInBackground(Boolean... params) {
-			if(params==null || params[0]==null)
-				return null;
-			
-			return dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,params[0]);
-		}
-		
-		@Override
-		protected void onPostExecute(SparseArray<Collection<MyOverlayItem>> sparseArray) {
-			if(sparseArray!=null) {
-				for(int i=0; i<sparseArray.size(); i++) {
-					int route = sparseArray.keyAt(i);
-					
-					ItemizedOverlayActivity itemizedOverlayActivity = new ItemizedOverlayActivity(drawableList.get(route%10),mapView,route);
-					
-					itemizedOverlayActivity.addAllOverlays(sparseArray.valueAt(i));
-					itemizedOverlayActivity.callPopulate();
-					
-					mapView.getOverlays().add(itemizedOverlayActivity);
-				}
+		protected void onPostExecute(Collection<MyOverlayItem> collection) {
+			if(collection!=null && itemizedOverlayActivity!=null) {
+				itemizedOverlayActivity.removeAllOverlays();
+				itemizedOverlayActivity.addAllOverlays(collection);
+				itemizedOverlayActivity.callPopulate();
+				
 			}
 			mapView.invalidate();
 		}
 		
 	}
-	
-
-
-	public void doEverything() throws IOException {
-		maxLat = mapView.getProjection().fromPixels(0, 0).getLatitudeE6()/1E6;
-		minLon = mapView.getProjection().fromPixels(0, 0).getLongitudeE6()/1E6;
-		minLat = (maxLat - mapView.getLatitudeSpan()/1E6);
-		maxLon = (minLon + mapView.getLongitudeSpan()/1E6);
-		drawableList = getDrawableList();
-		itemizedOverlayMap = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,false,drawableList,mapView);
-		
-		if(itemizedOverlayMap!=null) {
-			for(ItemizedOverlayActivity item: itemizedOverlayMap.values()) {
-				item.callPopulate();
-				mapView.getOverlays().add(item);
-			}
-		}
-		mapView.forceRefresh();
-	}
-
 
 	private List<Drawable> getDrawableList() {
-		drawableList = new ArrayList<Drawable>();
-		drawableList.add(this.getResources().getDrawable(R.drawable.m1));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m2));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m3));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m4));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m5));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m6));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m7));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m8));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m9));
-		drawableList.add(this.getResources().getDrawable(R.drawable.m10));
+		if(drawableList==null || drawableList.size()<10) {
+			drawableList = new ArrayList<Drawable>();
+			drawableList.add(this.getResources().getDrawable(R.drawable.m1));
+			drawableList.add(this.getResources().getDrawable(R.drawable.m2));
+			drawableList.add(this.getResources().getDrawable(R.drawable.m3));
+			drawableList.add(this.getResources().getDrawable(R.drawable.m4));
+			drawableList.add(this.getResources().getDrawable(R.drawable.m5));
+			drawableList.add(this.getResources().getDrawable(R.drawable.m6));
+			drawableList.add(this.getResources().getDrawable(R.drawable.m7));
+			drawableList.add(this.getResources().getDrawable(R.drawable.m8));
+			drawableList.add(this.getResources().getDrawable(R.drawable.m9));
+			drawableList.add(this.getResources().getDrawable(R.drawable.m10));
+		}
 		return drawableList;
 	}
 
@@ -331,122 +231,6 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		super.onResume();
 		myLocationOverlay.enableMyLocation();
 	}
-
-	private static String convertStreamToString(InputStream is) {
-		/*
-		 * To convert the InputStream to String we use the BufferedReader.readLine()
-		 * method. We iterate until the BufferedReader return null which means
-		 * there's no more data to read. Each line will appended to a StringBuilder
-		 * and returned as String.
-		 */
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		StringBuilder sb = new StringBuilder();
-
-		String line = null;
-		try {
-			while ((line = reader.readLine()) != null) {
-				sb.append(line + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				is.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return sb.toString();
-	}
-
-
-	public static JSONObject connect(String url)
-	{
-
-		HttpClient httpclient = new DefaultHttpClient();
-
-		// Prepare a request object
-		HttpGet httpget = new HttpGet(url); 
-
-		// Execute the request
-		HttpResponse response;
-		try {
-			response = httpclient.execute(httpget);
-
-			// Get hold of the response entity
-			HttpEntity entity = response.getEntity();
-			// If the response does not enclose an entity, there is no need
-			// to worry about connection release
-
-			if (entity != null) {
-
-				// A Simple JSON Response Read
-				InputStream instream = entity.getContent();
-				String result= convertStreamToString(instream);
-				// A Simple JSONObject Creation
-				JSONObject json=new JSONObject(result);
-
-				// Closing the input stream will trigger connection release
-				instream.close();
-				return json;
-			}
-
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-
-	/*public static ItemizedOverlayActivity drawBuses(int route, Drawable drawable, MyMapView mapView) {
-		ItemizedOverlayActivity overlay = new ItemizedOverlayActivity(drawable, mapView,route,false);
-		ArrayList<MyOverlayItem> list = null;
-		try {
-			list = processJSONObjectBusLocation(connect("http://discovertransit.herokuapp.com/bus/"+route+".json"));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		if(list!=null) {
-			for(int i = 0; i<list.size();i++)
-				overlay.addOverlay(list.get(i));
-		}
-		overlay.callPopulate();
-
-		return overlay;
-	}
-
-	public static ArrayList<MyOverlayItem> processJSONObjectBusLocation(JSONObject json) throws JSONException {
-		ArrayList<MyOverlayItem> list = new ArrayList<MyOverlayItem>();
-		if(json!=null) {
-			JSONArray j =(JSONArray)json.get("data");
-			JSONObject obj;
-			obj = (JSONObject)j.get(0);
-			String nextStop = "[unknown]";
-
-			for(int i = 0; i<j.length();i++)
-			{
-				obj = (JSONObject)j.get(i);
-				GeoPoint point = new GeoPoint((int)(obj.getDouble("lat")*1E6),(int)(obj.getDouble("lon")*1E6));
-				if(obj.has("next_stop"))
-					nextStop = obj.getString("next_stop");
-				MyOverlayItem overlayitem = new MyOverlayItem(point, "Route: " + obj.getInt("route"), obj.getString("direction")+ "--Next Major stop: "+ nextStop);
-				list.add(overlayitem);
-
-			}
-
-		}
-		return list;
-
-	}*/
 
 
 	private class ServerWakeup extends AsyncTask<Void, Void, Void> {

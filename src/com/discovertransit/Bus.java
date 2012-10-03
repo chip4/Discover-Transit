@@ -39,6 +39,14 @@ public class Bus implements RouteObjectInterface {
 	public String getDirection() {
 		return direction;
 	}
+
+	public boolean isStop() {
+		return false;
+	}
+
+	public boolean isBus() {
+		return true;
+	}
 	
 	
 	

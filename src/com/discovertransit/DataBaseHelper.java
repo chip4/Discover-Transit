@@ -6,19 +6,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.drawable.Drawable;
-import android.util.SparseArray;
-import android.util.SparseIntArray;
-
 import com.google.android.maps.GeoPoint;
 
 public class DataBaseHelper extends SQLiteOpenHelper{
@@ -130,45 +124,8 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
 	}
-
-	// Add your public helper methods to access and get content from the database.
-	// You could return cursors by doing "return myDataBase.query(....)" so it'd be easy
-	// to you to create adapters for your views.
-	public Map<Integer, ItemizedOverlayActivity> getStopsNearby(double minLat, double minLon, double maxLat, double maxLon,boolean limit, List<Drawable> draw, MyMapView mapView) {
-		String amount = "";
-		if(limit)
-			amount = "AND amount<2";
-		String query = "SELECT _id,stop,direction,lat,lon,route,amount FROM BusStops WHERE (lat BETWEEN '"+minLat+"' AND '"+maxLat+
-				"' AND lon BETWEEN '"+minLon+"' AND '"+maxLon+"'"+amount+") ORDER BY route";
-		System.out.println(query);
-		Cursor cursor = myDataBase.rawQuery(query,null);
-		
-		Map<Integer, ItemizedOverlayActivity> mMap = new HashMap<Integer, ItemizedOverlayActivity>();
-		if(!cursor.moveToFirst()) return null;
-		int route = cursor.getInt(5);
-		ItemizedOverlayActivity curItemizedOverlay = new ItemizedOverlayActivity(draw.get(route%10),mapView,route);
-		while(!cursor.isAfterLast()) {
-			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
-			route = cursor.getInt(5);
-			String stopName = cursor.getString(1);
-			String dir = cursor.getString(2);
-			if(!mMap.containsKey(route))
-			{
-				/*if(curItemizedOverlay!=null) {
-					curItemizedOverlay.callPopulate();
-				}*/
-				curItemizedOverlay = new ItemizedOverlayActivity(draw.get(route%10),mapView,route);
-				mMap.put(route, curItemizedOverlay);
-
-			}
-			MyOverlayItem stopOverlayItem = new MyOverlayItem(new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir));
-			curItemizedOverlay.addOverlay(stopOverlayItem);
-			cursor.moveToNext();
-		}
-		return mMap;
-	}
 	
-	public SparseArray<Collection<MyOverlayItem>> getStopsNearby(double minLat, double minLon, double maxLat, double maxLon,boolean limit) {
+	public Collection<MyOverlayItem> getStopsNearby(double minLat, double minLon, double maxLat, double maxLon,boolean limit,List<Drawable> draw) {
 		String amount = "";
 		if(limit)
 			amount = "AND amount<2";
@@ -177,29 +134,21 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 		System.out.println(query);
 		Cursor cursor = myDataBase.rawQuery(query,null);
 		
-		SparseArray<Collection<MyOverlayItem>> sparseArray = new SparseArray<Collection<MyOverlayItem>>();
 		if(!cursor.moveToFirst()) return null;
-		int route = cursor.getInt(5);
 		Collection<MyOverlayItem> collection = new ArrayList<MyOverlayItem>();
 		while(!cursor.isAfterLast()) {
 			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
-			route = cursor.getInt(5);
+			int route = cursor.getInt(5);
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			if(sparseArray.get(route)==null)
-			{
-				collection = new ArrayList<MyOverlayItem>();
-				sparseArray.put(route, collection);
-			}
-			MyOverlayItem stopOverlayItem = new MyOverlayItem(new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir));
-			collection.add(stopOverlayItem);
+			collection.add(new MyOverlayItem(draw.get(route%10),new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir)));
 			cursor.moveToNext();
 		}
-		return sparseArray;
+		return collection;
 	}
 	
 	
-	public Map<Integer, ItemizedOverlayActivity> addOverlappingStopsNearby(double minLat, double minLon, double maxLat, double maxLon,List<Drawable> draw, MyMapView mapView,Map<Integer, ItemizedOverlayActivity> mMap) {
+	/*public Map<Integer, ItemizedOverlayActivity> addOverlappingStopsNearby(double minLat, double minLon, double maxLat, double maxLon,List<Drawable> draw, MyMapView mapView,Map<Integer, ItemizedOverlayActivity> mMap) {
 		String query = "SELECT _id, lat,lon,amount,stop,direction,route FROM BusStops WHERE (lat BETWEEN '"+
 				+minLat+"' AND '"+maxLat+"' AND lon BETWEEN '"+minLon+"' AND '"+maxLon+"' AND amount>1) ORDER BY lat,lon";
 		System.out.println(query);
@@ -229,7 +178,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			cursor.moveToNext();
 		}
 		return mMap;
-	}
+	}*/
 	
 	public GeoPoint pointNearby(double lat, double lon,double distance,double delta) {
 
@@ -241,20 +190,21 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 		return new GeoPoint((int)(Math.toDegrees(lat1)*1E6),(int)(Math.toDegrees(lon1)*1E6));
 	}
 	
-	public int getStopsforRoute(int route, Drawable draw, MyMapView mapView,ItemizedOverlayActivity curItemizedOverlay) {
+	public Collection<MyOverlayItem> getStopsforRoute(int route, Drawable draw) {
 		Cursor cursor = myDataBase.rawQuery("SELECT _id,stop,direction,lat,lon,route FROM BusStops where(route='"+route+"') ORDER BY route",null);
 		//GeoPoint point;
-		if(!cursor.moveToFirst()) return -1;
-		int size = 0;
+		if(!cursor.moveToFirst()) return null;
+		
+		Collection<MyOverlayItem> collection = new ArrayList<MyOverlayItem>();
 		while(!cursor.isAfterLast()) {
 			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			MyOverlayItem stopOverlayItem = new MyOverlayItem(new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir));
-			curItemizedOverlay.addOverlay(stopOverlayItem);
+			MyOverlayItem stopOverlayItem = new MyOverlayItem(draw,new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir));
+			collection.add(stopOverlayItem);
 			cursor.moveToNext();
 		}
-		return size;
+		return collection;
 	}
 
 

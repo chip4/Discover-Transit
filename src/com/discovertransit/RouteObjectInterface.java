@@ -16,4 +16,8 @@ public interface RouteObjectInterface {
 	
 	public String getDirection();
 	
+	public boolean isStop();
+	
+	public boolean isBus();
+	
 }
