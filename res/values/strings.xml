@@ -3,5 +3,7 @@
 
     <string name="hello">Hello World!</string>
     <string name="app_name">Discover-Transit</string>
+    <string name="search_hint">Search for Location</string>
+    <string name="app_label">Discover-Transit</string>
 
 </resources>
