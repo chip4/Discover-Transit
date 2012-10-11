@@ -56,6 +56,7 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	
 	public void removeAllOverlays() {
 		mOverlays.clear();
+		setLastFocusedIndex(-1);
 	}
 
 	public void callPopulate() {
@@ -83,14 +84,15 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	protected boolean onBalloonTap(int index, MyOverlayItem item) {
 
 		if(!isRouteDisplayed) {
+			mapView.setRouteDisplayed(true);
 			MyOverlayItem currentOverlayItem = mOverlays.get(index);
 			int routeNum = currentOverlayItem.getRouteObject().getRoute();
+			mapView.setDisplayedRouteNum(routeNum);
 			Route route = new Route(routeNum,mContext);
 			Drawable draw = mapView.getDrawableList().get(routeNum%10);
-			mapView.setRouteDisplayed(true);
 			this.removeAllOverlays();
 			this.callPopulate();
-			setLastFocusedIndex(-1);
+			mapView.postInvalidate();
 			DisplayBusLocationsTask displayBuses = new DisplayBusLocationsTask(this,mapView,mapView.getResources().getDrawable(R.drawable.bus));
 			displayBuses.execute(route.getURL());
 			

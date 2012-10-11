@@ -77,7 +77,7 @@ public class RoutePathOverlay extends Overlay {
                         paint.setStyle(Paint.Style.STROKE);
                         paint.setStrokeWidth(5);
                         paint.setAlpha(90);
-                        if (!path.isEmpty()&&isCurrentLocationVisible(gPointB,gPointA,mapView))
+                        if ((!path.isEmpty())&&(isCurrentLocationVisible(gPointB,gPointA,mapView)))
                                 canvas.drawPath(path, paint);
                 	}
                 //}
@@ -94,15 +94,15 @@ public class RoutePathOverlay extends Overlay {
     	private static boolean isCurrentLocationVisible(GeoPoint start,GeoPoint end,MapView mapView) {
     		if(start==null||end==null) return false;
             Rect currentMapBoundsRect = new Rect();
-            Point startPosition = new Point();
-            Point endPosition = new Point();
+            Point startPosition = mapView.getProjection().toPixels(start, null);
+            Point endPosition = mapView.getProjection().toPixels(end, null);
 
-            mapView.getProjection().toPixels(start, startPosition);
-            mapView.getProjection().toPixels(end, endPosition);
             mapView.getDrawingRect(currentMapBoundsRect);
-
-            return currentMapBoundsRect.contains(startPosition.x,
+            
+            boolean result = currentMapBoundsRect.contains(startPosition.x,
                     startPosition.y)||currentMapBoundsRect.contains(endPosition.x,endPosition.y);
+            
+            return result;
 
         }
 }

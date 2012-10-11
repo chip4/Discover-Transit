@@ -8,7 +8,8 @@ import java.util.List;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-
+import android.app.SearchManager;
+import android.app.SearchableInfo;
 import android.content.Context;
 import android.database.SQLException;
 import android.graphics.drawable.Drawable;
@@ -18,12 +19,10 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
-
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
@@ -134,10 +133,6 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 				}
 				else if (!newCenter.equals(oldCenter)&&newZoom>14)
 				{
-					// Map Pan Detected
-					if(newZoom>18 && oldZoom<19) {
-						mapView.getOverlays().clear();
-					}
 					new UpdateMapTask(itemizedOverlay).execute(newZoom>18);
 					
 					System.out.println("Map Pan Detected");
@@ -277,9 +272,13 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.menu, menu);
-	    SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
-	    
+
+        SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchableInfo info = searchManager.getSearchableInfo(getComponentName());
+        searchView.setSearchableInfo(info);
+        
 	    return super.onCreateOptionsMenu(menu);
-	    //return true;
 	}
+	
 }

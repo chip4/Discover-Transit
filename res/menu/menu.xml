@@ -1,10 +1,14 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_search"
-          android:title="Menu Search"
-          android:icon="@android:drawable/ic_menu_search"
-          android:showAsAction="ifRoom|collapseActionView"
-          android:actionViewClass="android.widget.SearchView" />
-    <item android:id="@+id/help"
-          android:icon="@drawable/bus"
-          android:title="Help" />
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_search"
+        android:actionViewClass="android.widget.SearchView"
+        android:icon="@android:drawable/ic_menu_search"
+        android:showAsAction="ifRoom|collapseActionView"
+        android:title="Menu Search"/>
+    <item
+        android:id="@+id/help"
+        android:icon="@drawable/bus"
+        android:title="Help"/>
+
 </menu>
