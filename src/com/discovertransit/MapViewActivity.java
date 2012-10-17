@@ -8,16 +8,8 @@ import java.util.List;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-<<<<<<< HEAD
 import android.app.SearchManager;
 import android.app.SearchableInfo;
-=======
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.app.SearchManager;
->>>>>>> menu
 import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
@@ -281,24 +273,13 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.menu, menu);
-<<<<<<< HEAD
-
-        SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchableInfo info = searchManager.getSearchableInfo(getComponentName());
-        searchView.setSearchableInfo(info);
-        
-	    return super.onCreateOptionsMenu(menu);
-=======
 	    
 	    SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 	    SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
 	    searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
 
-	    //setContentView(R.layout.search);
 	    return true;//super.onCreateOptionsMenu(menu);
->>>>>>> menu
 	}
 	
 }
