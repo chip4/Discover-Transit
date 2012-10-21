@@ -12,15 +12,20 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
+
 import com.google.android.maps.GeoPoint;
+import com.google.android.maps.Projection;
 
 public class DataBaseHelper extends SQLiteOpenHelper{
 
 	//The Android's default system path of your application database.
 	private static String DB_PATH = "/data/data/com.discovertransit/databases/";
 
-	private static String DB_NAME = "TransitStops";
+	private static String DB_NAME = "Atlanta";
 
 	private SQLiteDatabase myDataBase; 
 
@@ -127,10 +132,8 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 	
 	public Collection<MyOverlayItem> getStopsNearby(double minLat, double minLon, double maxLat, double maxLon,boolean limit,List<Drawable> draw) {
 		String amount = "";
-		if(limit)
-			amount = "AND amount<2";
-		String query = "SELECT _id,stop,direction,lat,lon,route,amount FROM BusStops WHERE (lat BETWEEN '"+minLat+"' AND '"+maxLat+
-				"' AND lon BETWEEN '"+minLon+"' AND '"+maxLon+"'"+amount+") ORDER BY route";
+		String query = "SELECT _id,stop,direction,lat,lon,route FROM Stops WHERE (lat BETWEEN '"+minLat+"' AND '"+maxLat+
+				"' AND lon BETWEEN '"+minLon+"' AND '"+maxLon+"')";
 		System.out.println(query);
 		Cursor cursor = myDataBase.rawQuery(query,null);
 		
@@ -191,7 +194,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 	}
 	
 	public Collection<MyOverlayItem> getStopsforRoute(int route, Drawable draw) {
-		Cursor cursor = myDataBase.rawQuery("SELECT _id,stop,direction,lat,lon,route FROM BusStops where(route='"+route+"') ORDER BY route",null);
+		Cursor cursor = myDataBase.rawQuery("SELECT _id,stop,direction,lat,lon,route FROM Stops where(route='"+route+"')",null);
 		//GeoPoint point;
 		if(!cursor.moveToFirst()) return null;
 		
@@ -204,6 +207,34 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			collection.add(stopOverlayItem);
 			cursor.moveToNext();
 		}
+		return collection;
+	}
+	
+	public Collection<ArrayList<GeoPoint>> getRoutePath(int route) {
+		Cursor cursor = myDataBase.rawQuery("SELECT _id,shape_id,lat,lon,sequence_no FROM Route WHERE(route_no='"+route+"')",null);
+		if(!cursor.moveToFirst()) return null;
+		
+		Path path = null;
+		Point point;
+		GeoPoint geoPoint = null;
+		Collection<ArrayList<GeoPoint>> collection = new ArrayList<ArrayList<GeoPoint>>();
+		int sequence = -1;
+		int curSequence = 0;
+		ArrayList<GeoPoint> list = null;
+		while(!cursor.isAfterLast()) {
+			curSequence = cursor.getInt(4);
+			geoPoint = new GeoPoint((int)(cursor.getDouble(2)*1E6),(int)(cursor.getDouble(3)*1E6));
+			if(curSequence!=sequence) {
+				if(list!=null) {
+					collection.add(list);
+				}
+				list = new ArrayList<GeoPoint>();
+			}
+			list.add(geoPoint);
+			cursor.moveToNext();
+		}
+		collection.add(list);
+		Log.d("com.discovertransit","Finished DB Lookup");
 		return collection;
 	}
 

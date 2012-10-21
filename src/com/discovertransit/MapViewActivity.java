@@ -9,7 +9,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import android.app.SearchManager;
-import android.app.SearchableInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
@@ -36,7 +35,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	LinearLayout linearLayout;
 	MyMapView mapView;
 	ItemizedOverlayActivity itemizedOverlay;
-	
+
 	//Used for location
 	LocationManager myLocationManager;
 	LocationListener myLocationListener;
@@ -47,7 +46,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 	//Database
 	DataBaseHelper dbHelper;
-	
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -98,7 +97,8 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		myMapController.animateTo(p);
 		myMapController.setZoom(17);
 		myMapController.setCenter(p);
-		
+
+
 		Runnable waitForMap = new Runnable() {
 			public void run() {
 				if(mapView.getWidth()==0||mapView.getHeight()== 0) {
@@ -135,10 +135,10 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 				else if (!newCenter.equals(oldCenter)&&newZoom>14)
 				{
 					new UpdateMapTask(itemizedOverlay).execute(newZoom>18);
-					
+
 					System.out.println("Map Pan Detected");
-					
-					
+
+
 				}
 				else if (newZoom != oldZoom)
 				{
@@ -149,16 +149,16 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	}
 
 	private class UpdateMapTask extends AsyncTask<Boolean,Void,Collection<MyOverlayItem>> {
-		
+
 		private double minLat,maxLat,minLon,maxLon;
 		private ItemizedOverlayActivity itemizedOverlayActivity;
-		
+
 		public UpdateMapTask(ItemizedOverlayActivity itemizedOverlayActivity) {
 			if(itemizedOverlayActivity==null)
 				itemizedOverlayActivity = new ItemizedOverlayActivity(drawableList.get(0),mapView);
 			this.itemizedOverlayActivity = itemizedOverlayActivity;
 		}
-		
+
 		@Override
 		protected void onPreExecute() {
 			double latSpan = mapView.getLatitudeSpan()/1E6;
@@ -170,7 +170,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 			maxLat+=.3*latSpan;
 			minLon-=.3*lonSpan;
 		}
-		
+
 		@Override
 		protected Collection<MyOverlayItem> doInBackground(Boolean... params) {
 			if(params==null || params[0]==null)
@@ -178,18 +178,18 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 			Collection<MyOverlayItem> collection = dbHelper.getStopsNearby(minLat,minLon,maxLat,maxLon,params[0],drawableList);
 			return collection;
 		}
-		
+
 		@Override
 		protected void onPostExecute(Collection<MyOverlayItem> collection) {
 			if(collection!=null && itemizedOverlayActivity!=null) {
 				itemizedOverlayActivity.removeAllOverlays();
 				itemizedOverlayActivity.addAllOverlays(collection);
 				itemizedOverlayActivity.callPopulate();
-				
+
 			}
 			mapView.invalidate();
 		}
-		
+
 	}
 
 	private List<Drawable> getDrawableList() {
@@ -270,16 +270,42 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 	}
 	
-	public boolean onCreateOptionsMenu(Menu menu) {
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.menu, menu);
-	    
-	    SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-	    SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
-	    searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-
-
-	    return true;//super.onCreateOptionsMenu(menu);
+	public void onNewIntent(Intent intent) {
+		setIntent(intent);
+		handleIntent(intent);
 	}
-	
+
+	public void handleIntent(Intent intent) {
+		System.out.println("Intent Action: "+intent.getAction());
+		if(Intent.ACTION_SEARCH.equals(intent.getAction())) {
+			Drawable icon = getResources().getDrawable(R.drawable.btn1);
+			GeoPoint p = new GeoPoint(33760204,-84386222);
+			MyOverlayItem t = new MyOverlayItem(icon,p);
+
+			itemizedOverlay.addOverlay(t);
+			itemizedOverlay.callPopulate();
+
+			String query = intent.getStringExtra(SearchManager.QUERY);
+			System.out.println("Query: "+query);
+			System.out.println("Data: "+intent.getDataString());
+		}
+		else if(Intent.ACTION_VIEW.equals(intent.getAction())) {
+			String query = intent.getStringExtra(SearchManager.QUERY);
+			System.out.println("Query: "+query);
+			System.out.println("Data: "+intent.getDataString());
+		}
+	}
+
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+
+		SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+		SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+		searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
+
+		return true;//super.onCreateOptionsMenu(menu);
+	}
+
 }

@@ -96,7 +96,7 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 			DisplayBusLocationsTask displayBuses = new DisplayBusLocationsTask(this,mapView,mapView.getResources().getDrawable(R.drawable.bus));
 			displayBuses.execute(route.getURL());
 			
-			mapView.addRoutePathOverlay(new RoutePathOverlay(route.getPathCoords(),colorList.get(routeNum%10)));
+			mapView.addRoutePathOverlay(new RoutePathOverlay(mapView.getDbHelper().getRoutePath(routeNum),colorList.get(routeNum%10)));
 
 			Collection<MyOverlayItem> routeStops = mapView.getDbHelper().getStopsforRoute(routeNum, draw);
 			if(routeStops==null) return false;

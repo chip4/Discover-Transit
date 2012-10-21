@@ -47,7 +47,7 @@ public class PlacesSuggestionProvider extends ContentProvider {
 		BaseColumns._ID,
 		SearchManager.SUGGEST_COLUMN_TEXT_1,
 		//SearchManager.SUGGEST_COLUMN_TEXT_2,
-		SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
+		SearchManager.SUGGEST_COLUMN_INTENT_DATA
 	};
 
 	static {
@@ -152,7 +152,7 @@ public class PlacesSuggestionProvider extends ContentProvider {
 			results = new MatrixCursor(SEARCH_SUGGEST_COLUMNS, 1);
 			for (int i = 0; i < predictions.length(); i++) {
 				jsonObject = predictions.getJSONObject(i);
-				results.addRow(new String[] {""+(i+2),jsonObject.getString("description"),jsonObject.getString("terms")});
+				results.addRow(new String[] {""+(i+2),jsonObject.getString("description"),jsonObject.getString("reference")});
 			}
 		} catch (JSONException e) {
 			Log.e(LOG_TAG, "Cannot process JSON results", e);

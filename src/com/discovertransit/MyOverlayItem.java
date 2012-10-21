@@ -2,6 +2,7 @@ package com.discovertransit;
 
 import android.graphics.drawable.Drawable;
 
+import com.google.android.maps.GeoPoint;
 import com.google.android.maps.OverlayItem;
 
 public class MyOverlayItem extends OverlayItem{
@@ -11,6 +12,11 @@ public class MyOverlayItem extends OverlayItem{
 		super(routeObject.getPoint(),routeObject.getTitle(),routeObject.getSnippet());
 		this.marker = marker;
 		this.routeObject = routeObject;
+	}
+	public MyOverlayItem(Drawable marker,GeoPoint p) {
+		super(p,"TEST TITLE","TEST SNIPPET");
+		this.marker = marker;
+		this.routeObject = null;
 	}
 	
 	public RouteObjectInterface getRouteObject() {
