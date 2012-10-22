@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
-import android.graphics.Rect;
-
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
@@ -25,7 +22,6 @@ public class RoutePathOverlay extends Overlay {
 	private final List<GeoPoint> _points;
 	private Collection<ArrayList<GeoPoint>> pathCoords;
 	private boolean _drawStartEnd;
-	private Collection<Path> pathCollection;
 
 	/*public RoutePathOverlay(List<GeoPoint> points) {
                 this(points, Color.RED, true);
@@ -97,6 +93,14 @@ public class RoutePathOverlay extends Overlay {
 		if(pathCoords!=null && pathCoords.size()>0) {
 			Point point;
 			Path path = null;
+
+			Paint paint = new Paint();
+			paint.setAntiAlias(true);
+			paint.setColor(_pathColor);
+			paint.setStyle(Paint.Style.STROKE);
+			paint.setStrokeWidth(5);
+			paint.setAlpha(90);
+			
 			Projection projection = mapView.getProjection();
 			for(ArrayList<GeoPoint> points : pathCoords) {
 				boolean isFirst = true;
@@ -112,15 +116,8 @@ public class RoutePathOverlay extends Overlay {
 						path.lineTo(point.x, point.y);
 					}
 				}
-				Paint paint = new Paint();
-				paint.setAntiAlias(true);
-				paint.setColor(_pathColor);
-				paint.setStyle(Paint.Style.STROKE);
-				paint.setStrokeWidth(5);
-				paint.setAlpha(90);
 				if (!path.isEmpty())
 					canvas.drawPath(path, paint);
-
 			}
 		}
 		return super.draw(canvas, mapView, shadow, when);
@@ -133,6 +130,7 @@ public class RoutePathOverlay extends Overlay {
 	public void setDrawStartEnd(boolean markStartEnd) {
 		_drawStartEnd = markStartEnd;
 	}
+	/*
 	private static boolean isCurrentLocationVisible(GeoPoint start,GeoPoint end,MapView mapView) {
 		if(start==null||end==null) return false;
 		Rect currentMapBoundsRect = new Rect();
@@ -146,5 +144,5 @@ public class RoutePathOverlay extends Overlay {
 
 		return result;
 
-	}
+	}*/
 }

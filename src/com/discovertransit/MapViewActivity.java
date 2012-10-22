@@ -185,7 +185,6 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 				itemizedOverlayActivity.removeAllOverlays();
 				itemizedOverlayActivity.addAllOverlays(collection);
 				itemizedOverlayActivity.callPopulate();
-
 			}
 			mapView.invalidate();
 		}
@@ -278,21 +277,17 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 	public void handleIntent(Intent intent) {
 		System.out.println("Intent Action: "+intent.getAction());
 		if(Intent.ACTION_SEARCH.equals(intent.getAction())) {
-			Drawable icon = getResources().getDrawable(R.drawable.btn1);
-			GeoPoint p = new GeoPoint(33760204,-84386222);
-			MyOverlayItem t = new MyOverlayItem(icon,p);
-
-			itemizedOverlay.addOverlay(t);
-			itemizedOverlay.callPopulate();
-
 			String query = intent.getStringExtra(SearchManager.QUERY);
 			System.out.println("Query: "+query);
 			System.out.println("Data: "+intent.getDataString());
 		}
 		else if(Intent.ACTION_VIEW.equals(intent.getAction())) {
-			String query = intent.getStringExtra(SearchManager.QUERY);
-			System.out.println("Query: "+query);
-			System.out.println("Data: "+intent.getDataString());
+			String url = intent.getDataString();
+			Drawable icon = getResources().getDrawable(R.drawable.marker2);
+			//icon = getResources().getDrawable(android.R.drawable.);
+			SearchItemizedOverlay searchItemizedOverlay = new SearchItemizedOverlay(icon, mapView);
+			mapView.getOverlays().add(searchItemizedOverlay);
+			new AddSearchItemTask(mapView,searchItemizedOverlay,url).execute();
 		}
 	}
 

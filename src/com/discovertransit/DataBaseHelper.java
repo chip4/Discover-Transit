@@ -12,13 +12,10 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.graphics.Path;
-import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
-import com.google.android.maps.Projection;
 
 public class DataBaseHelper extends SQLiteOpenHelper{
 
@@ -131,7 +128,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 	}
 	
 	public Collection<MyOverlayItem> getStopsNearby(double minLat, double minLon, double maxLat, double maxLon,boolean limit,List<Drawable> draw) {
-		String amount = "";
+		//String amount = "";
 		String query = "SELECT _id,stop,direction,lat,lon,route FROM Stops WHERE (lat BETWEEN '"+minLat+"' AND '"+maxLat+
 				"' AND lon BETWEEN '"+minLon+"' AND '"+maxLon+"')";
 		System.out.println(query);
@@ -214,21 +211,20 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 		Cursor cursor = myDataBase.rawQuery("SELECT _id,shape_id,lat,lon,sequence_no FROM Route WHERE(route_no='"+route+"')",null);
 		if(!cursor.moveToFirst()) return null;
 		
-		Path path = null;
-		Point point;
 		GeoPoint geoPoint = null;
 		Collection<ArrayList<GeoPoint>> collection = new ArrayList<ArrayList<GeoPoint>>();
-		int sequence = -1;
-		int curSequence = 0;
+		int shape = -1;
+		int curShape = 0;
 		ArrayList<GeoPoint> list = null;
 		while(!cursor.isAfterLast()) {
-			curSequence = cursor.getInt(4);
+			curShape = cursor.getInt(1);
 			geoPoint = new GeoPoint((int)(cursor.getDouble(2)*1E6),(int)(cursor.getDouble(3)*1E6));
-			if(curSequence!=sequence) {
+			if(curShape!=shape) {
 				if(list!=null) {
 					collection.add(list);
 				}
 				list = new ArrayList<GeoPoint>();
+				shape=curShape;
 			}
 			list.add(geoPoint);
 			cursor.moveToNext();

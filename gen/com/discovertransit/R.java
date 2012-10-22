@@ -43,10 +43,11 @@ public final class R {
         public static final int balloon_item_snippet=0x7f050004;
         public static final int balloon_item_title=0x7f050003;
         public static final int balloon_main_layout=0x7f050002;
-        public static final int help=0x7f05000a;
+        public static final int help=0x7f05000b;
         public static final int mainlayout=0x7f050006;
         public static final int mapview=0x7f050007;
         public static final int menu_search=0x7f050009;
+        public static final int shange=0x7f05000a;
         public static final int status_text=0x7f050008;
     }
     public static final class layout {

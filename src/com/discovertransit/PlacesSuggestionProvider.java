@@ -34,6 +34,7 @@ public class PlacesSuggestionProvider extends ContentProvider {
 
 	private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
 	private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
+	private static final String TYPE_DETAIL = "/details";
 	private static final String OUT_JSON = "/json";
 
 	private static final String API_KEY = "AIzaSyCRoi556ysGOx6IrGeAzS7YtdGVHVKvV7E";
@@ -112,6 +113,7 @@ public class PlacesSuggestionProvider extends ContentProvider {
 
 		HttpURLConnection conn = null;
 		StringBuilder jsonResults = new StringBuilder();
+		
 		try {
 			StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
 			sb.append("?sensor=true&key=" + API_KEY);
@@ -148,11 +150,13 @@ public class PlacesSuggestionProvider extends ContentProvider {
 			JSONObject jsonObject = new JSONObject(jsonResults.toString());
 			JSONArray predictions = jsonObject.getJSONArray("predictions");
 
+			String base_url = PLACES_API_BASE + TYPE_DETAIL + OUT_JSON + "?sensor=true&key="+API_KEY+"&reference=";
+			
 			// Extract the Place descriptions from the results
 			results = new MatrixCursor(SEARCH_SUGGEST_COLUMNS, 1);
 			for (int i = 0; i < predictions.length(); i++) {
 				jsonObject = predictions.getJSONObject(i);
-				results.addRow(new String[] {""+(i+2),jsonObject.getString("description"),jsonObject.getString("reference")});
+				results.addRow(new String[] {""+(i+2),jsonObject.getString("description"),base_url + jsonObject.getString("reference")});
 			}
 		} catch (JSONException e) {
 			Log.e(LOG_TAG, "Cannot process JSON results", e);

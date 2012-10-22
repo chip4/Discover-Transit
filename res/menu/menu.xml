@@ -7,8 +7,13 @@
         android:showAsAction="ifRoom|collapseActionView"
         android:title="Menu Search"/>
     <item
+        android:id="@+id/shange"
+        android:icon="@drawable/bus"
+        android:title="Change City"/>
+    <item
         android:id="@+id/help"
         android:icon="@drawable/bus"
         android:title="Help"/>
+    
 
 </menu>
