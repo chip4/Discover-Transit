@@ -109,6 +109,9 @@ public class PlacesSuggestionProvider extends ContentProvider {
 	}
 
 	private MatrixCursor getResults(String query,double latitude, double longitude) {
+		if(query==null||query.length()<3||query.equals("search_suggest_query")) {
+			return null;
+		}
 		MatrixCursor results = null;
 
 		HttpURLConnection conn = null;

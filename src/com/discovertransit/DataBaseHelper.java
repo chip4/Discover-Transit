@@ -22,8 +22,10 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 	//The Android's default system path of your application database.
 	private static String DB_PATH = "/data/data/com.discovertransit/databases/";
 
-	private static String DB_NAME = "Atlanta";
+	private static String DEFAULT_DB_NAME = "Atlanta";
 
+	private String DB_NAME;
+	
 	private SQLiteDatabase myDataBase; 
 
 	private final Context myContext;
@@ -35,9 +37,16 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 	 */
 	public DataBaseHelper(Context context) {
 
-		super(context, DB_NAME, null, 1);
+		super(context, DEFAULT_DB_NAME, null, 1);
+		this.DB_NAME = DEFAULT_DB_NAME;
 		this.myContext = context;
-	}	
+	}
+	
+	public DataBaseHelper(Context context, String db_name) {
+		super(context, db_name, null, 1);
+		this.myContext = context;
+		this.DB_NAME = db_name;
+	}
 
 	/**
 	 * Creates a empty database on the system and rewrites it with your own database.

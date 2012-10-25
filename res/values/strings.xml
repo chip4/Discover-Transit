@@ -5,5 +5,9 @@
     <string name="app_name">Discover-Transit</string>
     <string name="search_hint">Search for Location</string>
     <string name="app_label">Discover-Transit</string>
+    <string name="city_label">Select Current City</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_change_city">ChangeCityActivity</string>
 
 </resources>

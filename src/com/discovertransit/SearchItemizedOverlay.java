@@ -35,5 +35,17 @@ public class SearchItemizedOverlay extends BalloonItemizedOverlay<SearchOverlayI
 		searchItems.clear();
 		setLastFocusedIndex(-1);
 	}
+	
+	public void removeOverlay(int index) {
+		searchItems.remove(index);
+		setLastFocusedIndex(-1);
+		populate();
+	}
+	
+	protected boolean onBalloonTap(int index, SearchOverlayItem currentOverlayItem) {
+		removeOverlay(index);
+		return false;
+		
+	}
 
 }

@@ -34,6 +34,7 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 		colorList.add(Color.GREEN);
 		colorList.add(Color.MAGENTA);
 		colorList.add(Color.GREEN);
+		populate();
 	}
 
 	@Override
@@ -81,11 +82,10 @@ public class ItemizedOverlayActivity extends BalloonItemizedOverlay<MyOverlayIte
 	}
 
 
-	protected boolean onBalloonTap(int index, MyOverlayItem item) {
+	protected boolean onBalloonTap(int index, MyOverlayItem currentOverlayItem) {
 
 		if(!isRouteDisplayed) {
 			mapView.setRouteDisplayed(true);
-			MyOverlayItem currentOverlayItem = mOverlays.get(index);
 			int routeNum = currentOverlayItem.getRouteObject().getRoute();
 			mapView.setDisplayedRouteNum(routeNum);
 			Route route = new Route(routeNum,mContext);

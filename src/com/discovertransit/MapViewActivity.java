@@ -8,6 +8,8 @@ import java.util.List;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+
+import android.app.DialogFragment;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +23,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
 import com.google.android.maps.GeoPoint;
@@ -29,13 +32,15 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 
-public class MapViewActivity extends MapActivity implements LocationListener {
+public class MapViewActivity extends MapActivity implements LocationListener,ChangeCityDialog.ChangeCityDialogListener {
 
 	//Initial items
 	LinearLayout linearLayout;
 	MyMapView mapView;
 	ItemizedOverlayActivity itemizedOverlay;
-
+	String curCity = "Atlanta";
+	boolean disable;
+	
 	//Used for location
 	LocationManager myLocationManager;
 	LocationListener myLocationListener;
@@ -49,30 +54,26 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 	/** Called when the activity is first created. */
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+	public void onCreate(Bundle bundle) {
+		super.onCreate(bundle);
+		String city;
+		if(bundle!=null && bundle.containsKey("city")) {
+			city=bundle.getString("city");
+		}
+		else {
+			city="Atlanta";
+		}
 		setContentView(R.layout.main);
-		
+
 		new ServerWakeup().execute();
+		disable = false;
 		mapView = (MyMapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
 		mapView.setSatellite(false);
 		myLocationOverlay = new MyLocationOverlay(this,mapView);
 		myLocationOverlay.enableMyLocation();
 		mapView.getOverlays().add(myLocationOverlay);
-
-		dbHelper = new DataBaseHelper(mapView.getContext());
-		try {
-			dbHelper.createDataBase();
-		} catch (IOException e) {
-			throw new Error("Unable to create database");
-		}
-
-		try {
-			dbHelper.openDataBase();
-		} catch(SQLException e) {
-			throw e;
-		}
+		setupDatabase(city);
 		mapView.setDbHelper(dbHelper);
 		context = mapView.getContext();
 		myMapController = mapView.getController();
@@ -125,7 +126,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 		public void onChange(MapView view, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom)
 		{
-			if(!mapView.isRouteDisplayed()||mapView.forceRefresh()) {
+			if(!disable && (!mapView.isRouteDisplayed()||mapView.forceRefresh())) {
 				// Check values
 				if(mapView.forceRefresh()) mapView.setForceRefresh(false); 	
 				if ((!newCenter.equals(oldCenter)) && (newZoom != oldZoom))
@@ -181,7 +182,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 		@Override
 		protected void onPostExecute(Collection<MyOverlayItem> collection) {
-			if(collection!=null && itemizedOverlayActivity!=null) {
+			if(collection!=null && collection.size()>1 && itemizedOverlayActivity!=null) {
 				itemizedOverlayActivity.removeAllOverlays();
 				itemizedOverlayActivity.addAllOverlays(collection);
 				itemizedOverlayActivity.callPopulate();
@@ -206,6 +207,29 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 			drawableList.add(this.getResources().getDrawable(R.drawable.m10));
 		}
 		return drawableList;
+	}
+	
+	private void setupDatabase(String city) {
+		if(city==null) {
+			city = "Atlanta";
+		}
+		if(dbHelper!=null) {
+			dbHelper.close();
+			dbHelper = null;
+		}
+
+		dbHelper = new DataBaseHelper(mapView.getContext(),city);
+		try {
+			dbHelper.createDataBase();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			dbHelper.openDataBase();
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 
@@ -268,7 +292,7 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		// TODO Auto-generated method stub
 
 	}
-	
+
 	public void onNewIntent(Intent intent) {
 		setIntent(intent);
 		handleIntent(intent);
@@ -284,10 +308,27 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 		else if(Intent.ACTION_VIEW.equals(intent.getAction())) {
 			String url = intent.getDataString();
 			Drawable icon = getResources().getDrawable(R.drawable.marker2);
-			//icon = getResources().getDrawable(android.R.drawable.);
 			SearchItemizedOverlay searchItemizedOverlay = new SearchItemizedOverlay(icon, mapView);
 			mapView.getOverlays().add(searchItemizedOverlay);
 			new AddSearchItemTask(mapView,searchItemizedOverlay,url).execute();
+		}
+		else if(intent.getAction().equals("CHANGE_CITY")) {
+			Bundle bundle = intent.getExtras();
+			String newCity;
+			if(bundle!=null && bundle.containsKey("city")) {
+				newCity=bundle.getString("city");
+				System.out.println("NEW CITY: "+newCity);
+			}
+			else {
+				newCity="Atlanta";
+			}
+			disable = true;
+			itemizedOverlay.removeAllOverlays();
+			itemizedOverlay.callPopulate();
+			mapView.invalidate();
+			setupDatabase(newCity);
+			mapView.setDbHelper(dbHelper);
+			disable = false;
 		}
 	}
 
@@ -301,6 +342,46 @@ public class MapViewActivity extends MapActivity implements LocationListener {
 
 
 		return true;//super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if(item.getItemId() == android.R.id.home) {
+			//finish();
+			return true;
+		}
+		if(item.getItemId() == R.id.change) {
+			showChangeCityDialog();
+			return true;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+
+	public void showChangeCityDialog() {
+		ArrayList<String> listItems = new ArrayList<String>();
+		listItems.add("Atlanta");
+        listItems.add("Chattanooga");
+		DialogFragment dialog = ChangeCityDialog.newInstance(this, listItems);
+		dialog.show(getFragmentManager(),"ChangeCityDialog");
+	}
+	
+	public void onDialogPositiveClick(DialogFragment dialog) {
+		String city = ((ChangeCityDialog)dialog).getChoice();
+		System.out.println("Chosen City: "+city);
+		setupDatabase(city);
+		if(mapView.isRouteDisplayed()) {
+			mapView.removeRoutePathOverlay();
+		}
+		itemizedOverlay.removeAllOverlays();
+		itemizedOverlay.callPopulate();
+		mapView.invalidate();
+		mapView.setDbHelper(dbHelper); 	
+	}
+
+	public void onDialogNegativeClick(DialogFragment dialog) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

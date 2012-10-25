@@ -7,7 +7,6 @@ public class SearchOverlayItem extends OverlayItem {
 
 	public SearchOverlayItem(GeoPoint geoPoint, String title, String description) {
 		super(geoPoint, title, description);
-		// TODO Auto-generated constructor stub
 	}
 
 }
