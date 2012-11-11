@@ -73,8 +73,9 @@ public class MapViewActivity extends MapActivity implements LocationListener,Cha
 		myLocationOverlay = new MyLocationOverlay(this,mapView);
 		myLocationOverlay.enableMyLocation();
 		mapView.getOverlays().add(myLocationOverlay);
-		setupDatabase(city);
-		mapView.setDbHelper(dbHelper);
+		//setupDatabase(city);
+		//mapView.setDbHelper(dbHelper);
+		new ChangeDatabaseTask(mapView,city).execute();
 		context = mapView.getContext();
 		myMapController = mapView.getController();
 		myLocationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
@@ -87,7 +88,6 @@ public class MapViewActivity extends MapActivity implements LocationListener,Cha
 				myMapController.setZoom(17);
 			}
 		});
-		mapView.setOnChangeListener(new MapViewChangeListener());
 		Location location = myLocationManager.getLastKnownLocation(bestprovider);
 		GeoPoint p;
 		try {
@@ -110,7 +110,8 @@ public class MapViewActivity extends MapActivity implements LocationListener,Cha
 						drawableList = getDrawableList();
 						itemizedOverlay = new ItemizedOverlayActivity(drawableList.get(0),mapView);
 						mapView.getOverlays().add(itemizedOverlay);
-						new UpdateMapTask(itemizedOverlay).execute(false);
+						mapView.setOnChangeListener(new MapViewChangeListener(itemizedOverlay));
+						new UpdateMapTask(itemizedOverlay,mapView).execute(false);
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -121,12 +122,16 @@ public class MapViewActivity extends MapActivity implements LocationListener,Cha
 		mapView.postDelayed(waitForMap, 100);
 	}
 
-	private class MapViewChangeListener implements MyMapView.OnChangeListener
+	/*private class MapViewChangeListener implements MyMapView.OnChangeListener
 	{
+		boolean enabled = true; 
+		public void disable() {
+			
+		}
 
-		public void onChange(MapView view, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom)
+		public void onChange(MyMapView mapView, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom)
 		{
-			if(!disable && (!mapView.isRouteDisplayed()||mapView.forceRefresh())) {
+			if(enabled && (!mapView.isRouteDisplayed()||mapView.forceRefresh())) {
 				// Check values
 				if(mapView.forceRefresh()) mapView.setForceRefresh(false); 	
 				if ((!newCenter.equals(oldCenter)) && (newZoom != oldZoom))
@@ -147,9 +152,9 @@ public class MapViewActivity extends MapActivity implements LocationListener,Cha
 				}
 			}
 		}
-	}
+	}*/
 
-	private class UpdateMapTask extends AsyncTask<Boolean,Void,Collection<MyOverlayItem>> {
+	/*private class UpdateMapTask extends AsyncTask<Boolean,Void,Collection<MyOverlayItem>> {
 
 		private double minLat,maxLat,minLon,maxLon;
 		private ItemizedOverlayActivity itemizedOverlayActivity;
@@ -190,7 +195,7 @@ public class MapViewActivity extends MapActivity implements LocationListener,Cha
 			mapView.invalidate();
 		}
 
-	}
+	}*/
 
 	private List<Drawable> getDrawableList() {
 		if(drawableList==null || drawableList.size()<10) {
@@ -369,14 +374,15 @@ public class MapViewActivity extends MapActivity implements LocationListener,Cha
 	public void onDialogPositiveClick(DialogFragment dialog) {
 		String city = ((ChangeCityDialog)dialog).getChoice();
 		System.out.println("Chosen City: "+city);
-		setupDatabase(city);
 		if(mapView.isRouteDisplayed()) {
 			mapView.removeRoutePathOverlay();
 		}
 		itemizedOverlay.removeAllOverlays();
 		itemizedOverlay.callPopulate();
 		mapView.invalidate();
-		mapView.setDbHelper(dbHelper); 	
+		new ChangeDatabaseTask(mapView,city).execute();
+		//setupDatabase(city);
+		//mapView.setDbHelper(dbHelper); 	
 	}
 
 	public void onDialogNegativeClick(DialogFragment dialog) {

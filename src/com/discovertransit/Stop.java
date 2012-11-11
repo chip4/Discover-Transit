@@ -9,22 +9,25 @@ public class Stop implements RouteObjectInterface{
 	private String stopName;
 	private String direction;
 	private GeoPoint point;
+	private String baseURL;
 	
 	
-	public Stop(GeoPoint point,String title,String snippet,int route, String stopName, String direction) {
+	public Stop(GeoPoint point,String title,String snippet,int route, String stopName, String direction,String baseURL) {
 		this.point = point;
 		this.title = title;
 		this.snippet = snippet;
 		this.route = route;
 		this.stopName = stopName;
 		this.direction = direction;
+		this.baseURL = baseURL;
 	}
 	
 	public String getURL() {
 		if(stopName==null || direction==null)
 			return null;
-		System.out.println("http://discovertransit.herokuapp.com/times/"+route+"/"+stopName.replace(" ","").replace(".", "")+"/"+direction+".json");
-		return "http://discovertransit.herokuapp.com/times/"+route+"/"+stopName.replace(" ","").replace(".", "")+"/"+direction+".json";
+		System.out.println(baseURL+route+"/"+direction.toLowerCase()+"/"+stopName.replace(" ","").replace(".", ""));
+		//return "http://discovertransit.herokuapp.com/times/"+route+"/"+stopName.replace(" ","").replace(".", "")+"/"+direction+".json";
+		return baseURL+route+"/"+direction.toLowerCase()+"/"+stopName.replace(" ","").replace(".", "");
 	}
 
 	public GeoPoint getPoint() {

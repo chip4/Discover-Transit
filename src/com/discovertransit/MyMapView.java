@@ -22,7 +22,9 @@ public class MyMapView extends MapView
 	// Change listener
 	public interface OnChangeListener
 	{
-		public void onChange(MapView view, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom);
+		public void onChange(MyMapView view, GeoPoint newCenter, GeoPoint oldCenter, int newZoom, int oldZoom);
+		public void disable();
+		public void enable();
 	}
 
 	// ------------------------------------------------------------------------
@@ -96,6 +98,16 @@ public class MyMapView extends MapView
 		mThis = this;
 		mLastCenterPosition = this.getMapCenter();
 		mLastZoomLevel = this.getZoomLevel();
+	}
+	
+	public void disableListener() {
+		if(mChangeListener!=null)
+			mChangeListener.disable();
+	}
+	
+	public void enableListener() {
+		if(mChangeListener!=null)
+			mChangeListener.enable();
 	}
 
 
@@ -193,7 +205,7 @@ public class MyMapView extends MapView
 		}
 		return drawableList;
 	}
-
+	
 	public boolean addRoutePathOverlay(RoutePathOverlay routeOverlay) {
 		this.routeOverlay = routeOverlay;
 		return this.getOverlays().add(routeOverlay);

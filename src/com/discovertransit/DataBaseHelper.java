@@ -25,6 +25,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 	private static String DEFAULT_DB_NAME = "Atlanta";
 
 	private String DB_NAME;
+	private String baseURL;
 	
 	private SQLiteDatabase myDataBase; 
 
@@ -113,6 +114,17 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 		//Open the database
 		String myPath = DB_PATH + DB_NAME;
 		myDataBase = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
+		String baseURL = null;
+		try {
+		Cursor cursor = myDataBase.rawQuery("SELECT _id,url FROM API LIMIT 1", null);
+		if(cursor.moveToFirst()) {
+			baseURL = cursor.getString(1);
+		}
+		} catch(Exception e) {
+			e.printStackTrace();
+			baseURL = "http://m.cip.gatech.edu/developer/discovertransit/api/base_widget/marta/";
+		}
+		this.baseURL = baseURL;
 
 	}
 
@@ -150,7 +162,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			int route = cursor.getInt(5);
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			collection.add(new MyOverlayItem(draw.get(route%10),new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir)));
+			collection.add(new MyOverlayItem(draw.get(route%10),new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir,baseURL)));
 			cursor.moveToNext();
 		}
 		return collection;
@@ -209,7 +221,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 			GeoPoint point = new GeoPoint((int)(cursor.getDouble(3)*1E6),(int)(cursor.getDouble(4)*1E6));
 			String stopName = cursor.getString(1);
 			String dir = cursor.getString(2);
-			MyOverlayItem stopOverlayItem = new MyOverlayItem(draw,new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir));
+			MyOverlayItem stopOverlayItem = new MyOverlayItem(draw,new Stop(point,"Route "+route+": "+dir,stopName,route,stopName,dir,baseURL));
 			collection.add(stopOverlayItem);
 			cursor.moveToNext();
 		}
